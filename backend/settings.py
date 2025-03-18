@@ -28,8 +28,8 @@ DEBUG = True
 ASGI_APPLICATION = "backend.asgi.application"
 
 # Allowed Hosts
-ALLOWED_HOSTS = ["your-app-name.onrender.com"]
-
+# ALLOWED_HOSTS = ["your-app-name.onrender.com"]
+ALLOWED_HOSTS = ["backend-new-pmbf.onrender.com", "localhost", "127.0.0.1"]
 # Static & Media Files
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
