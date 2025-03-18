@@ -3,11 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("This is")
     console.log("DOM loaded. Running initialization functions...");
 
-    let startChatButton = document.getElementById("start-chat-btn");
     let micButton = document.getElementById("microphone-btn");
     let typingButton = document.getElementById("typing-btn");
 
-    if (startChatButton) startChatButton.addEventListener("click", startChat);
     if (micButton) micButton.addEventListener("click", () => startConversation("hearing-user"));
     if (typingButton) typingButton.addEventListener("click", () => startConversation("dhh-user"));
 
@@ -42,6 +40,45 @@ function generateQRCode() {
     }
 }
 
+// Ensure DOM is fully loaded before running any scripts
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM loaded. Running initialization functions...");
+
+    let micButton = document.getElementById("microphone-btn");
+    let typingButton = document.getElementById("typing-btn");
+
+    if (micButton) micButton.addEventListener("click", () => startConversation("hearing-user"));
+    if (typingButton) typingButton.addEventListener("click", () => startConversation("dhh-user"));
+
+    if (document.getElementById("qr-code")) {
+        generateQRCode();
+    }
+
+    checkIfLoggedIn();
+    checkIfMonitor();
+    setupWebSocket(); // ✅ Enable WebSocket connection
+});
+
+// ✅ Function to check if a user is logged in and redirect correctly
+function checkIfLoggedIn() {
+    let userName = sessionStorage.getItem("userName");
+    let userType = sessionStorage.getItem("userType");
+
+    if (userName && userType) {
+        console.log("User detected:", userName, "as", userType);
+
+        // If on a mobile device, redirect to respective page
+        if (userType === "hearing-user" && window.location.pathname !== "/speaking/") {
+            window.location.href = "/speaking/";
+        } else if (userType === "dhh-user" && window.location.pathname !== "/typing/") {
+            window.location.href = "/typing/";
+        } else if (!userType && window.location.pathname !== "/chatroom/") {
+            window.location.href = "/chatroom/";
+        }
+    }
+}
+
+// ✅ Function to check if this is the chatroom monitor
 function checkIfMonitor() {
     let userName = sessionStorage.getItem("userName");
 
@@ -54,6 +91,54 @@ function checkIfMonitor() {
         }
     } else {
         console.log("Valid user detected:", userName);
+    }
+}
+
+// ✅ Store user's name and input method, then redirect accordingly
+function startConversation(userType) {
+    let nameInput = document.getElementById("your_name");
+    let userName = nameInput ? nameInput.value.trim() : "";
+
+    if (!userName) {
+        alert("Please enter your name before proceeding.");
+        return;
+    }
+
+    sessionStorage.setItem("userName", userName);
+    sessionStorage.setItem("userType", userType);
+
+    console.log("Logging in:", userName, "as", userType);
+
+    // Redirect based on input type
+    if (userType === "hearing-user") {
+        requestMicrophonePermission();
+        window.location.href = "/speaking/";
+    } else if (userType === "dhh-user") {
+        window.location.href = "/typing/";
+    } else {
+        window.location.href = "/chatroom/";
+    }
+}
+
+// ✅ Function to generate QR code dynamically
+function generateQRCode() {
+    let qrContainer = document.getElementById("qr-code");
+    if (qrContainer) {
+        console.log("Generating QR Code...");
+        qrContainer.innerHTML = "";
+
+        try {
+            new QRCode(qrContainer, {
+                text: window.location.origin + "/login/",
+                width: 200,
+                height: 200
+            });
+            console.log("QR Code generated successfully.");
+        } catch (error) {
+            console.error("Error generating QR Code:", error);
+        }
+    } else {
+        console.error("QR container not found!");
     }
 }
 
@@ -73,27 +158,16 @@ function setupWebSocket() {
     };
 }
 
-// ✅ Fetch Messages from API (Fallback if WebSocket fails)
-function fetchMessages() {
-    fetch("/api/chat/messages/")
-        .then(response => response.json())
-        .then(messages => {
-            let chatDisplay = document.getElementById("chat_display");
-            chatDisplay.innerHTML = "";
+// ✅ Display Message in Chatroom
+function displayMessage(user, message, userType) {
+    let chatDisplay = document.getElementById("chat_display");
+    let messageElement = document.createElement("p");
+    messageElement.textContent = `${user}: ${message}`;
+    messageElement.style.color = userType === "hearing-user" ? "blue" : "green";
+    messageElement.style.fontWeight = "bold";
 
-            messages.forEach(msg => {
-                displayMessage(msg.user, msg.text, msg.user_type);
-            });
-
-            chatDisplay.scrollTop = chatDisplay.scrollHeight;
-        })
-        .catch(error => console.error("Error fetching messages:", error));
-}
-
-// ✅ Function to start chat from index.html
-function startChat() {
-    console.log("Redirecting to login page...");
-    window.location.href = "/login/";
+    chatDisplay.appendChild(messageElement);
+    chatDisplay.scrollTop = chatDisplay.scrollHeight;
 }
 
 // ✅ Store user's name and input method, then request microphone if necessary
