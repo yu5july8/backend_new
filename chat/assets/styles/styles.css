@@ -46,11 +46,21 @@ button:hover, input[type="button"]:hover, input[type="submit"]:hover {
 }
 
 /* QR Code - index.html */
+/* Center QR Code */
+.qr-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* Stack elements vertically */
+    height: 50vh; /* Adjust height for better centering */
+    margin-top: 20px; /* Adjust margin if necessary */
+}
+
+/* QR Code */
 #qr-code {
-    max-width: 300px;
+    max-width: 250px;
     height: auto;
     display: block;
-    margin: 20px;
     padding: 10px;
     background: white;
     border-radius: 10px;
