@@ -1,0 +1,17 @@
+# Django & Dependencies
+Django==5.1.2
+daphne==4.0.0
+channels==4.0.0
+channels-redis==4.1.0  # Required if using Redis for WebSockets
+
+# API & Data Handling
+djangorestframework==3.14.0
+django-cors-headers==4.3.0
+dj-database-url==2.1.0  # Needed for database config on Render
+
+# OpenAI API Integration
+openai==1.7.0  # Ensure this matches the latest version you're using
+
+# Other Utilities
+whitenoise==6.5.0  # Serves static files efficiently in production
+gunicorn==21.2.0  # Required for running Django on Render

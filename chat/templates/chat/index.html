@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Conversational Tool</title>
+    <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+    <link rel="icon" href="{% static 'images/imagefavicon.png' %}" type="image/x-icon">
+    <script src="{% static 'scripts/scripts.js' %}" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script> <!-- Load QR Code Library from CDN -->
+</head>
+<body>
+    <h1>Welcome to the AI-Powered Conversational Tool</h1>
+    <p>Scan the QR code below to join the conversation from your personal device.</p>
+
+    <div id="qr-container">
+        <div id="qr-code"></div> <!-- QR Code will be generated here -->
+    </div>
+
+    <p>After scanning, you will be able to choose your input method.</p>
+
+    <button id="start-chat-btn">Start Chat</button>
+</body>
+</html>

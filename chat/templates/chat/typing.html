@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Conversation Tool</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_mobile.css' %}">
+    <script src="{% static 'scripts/scripts.js' %}" defer></script>
+</head>
+<body>
+    <h1>Welcome, <span id="user-name">User</span>!</h1>
+    <p>Type your message and chat with your friends!</p>
+
+    <div id="chat_box">
+        <h2>Live Conversation</h2>
+        <div id="chat_display"></div>
+    </div>
+
+    <div id="typing_box">
+        <label for="type_chat_box">Message:</label>
+        <input type="text" id="type_chat_box" name="type_chat_box" placeholder="Type a message...">
+        <button id="send-button" onclick="typingSentence()">Send</button>
+    </div>
+
+    <div id="reaction">
+        <p>React with an emoji:</p>
+        <button onclick="sendReaction('good')">👍 Good</button>
+        <button onclick="sendReaction('smile')">😊 Smile</button>
+        <button onclick="sendReaction('laugh')">😂 Laugh</button>
+        <button onclick="sendReaction('angry')">😠 Angry</button>
+    </div>
+
+    <button id="exit-button" onclick="exitChat()">Exit</button>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Conversation Tool</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_mobile.css' %}">
+    <script src="{% static 'scripts/scripts.js' %}" defer></script>
+</head>
+<body>
+    <h1>Welcome, <span id="user-name">User</span>!</h1>
+    <p>Hold the microphone button to speak and start chatting with your friends!</p>
+    
+    <section class="speaking_box">
+        <div id="chat_box">
+            <h2>Live Conversation</h2>
+            <div id="chat_display"></div>
+        </div>
+        <div id="speaking_input">
+            <button id="speak-button" onmousedown="startSpeaking()" onmouseup="stopSpeaking()">🎤 Hold to Speak</button>
+        </div>
+    </section>
+
+    <button id="exit-button" onclick="exitChat()">Exit</button>
+</body>
+</html>

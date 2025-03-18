@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Conversation Tool</title>
+    <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+    <script src="{% static 'scripts/scripts.js' %}" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script> <!-- Load QR Code Library from CDN -->
+</head>
+<body>
+    <h1>AI-Powered Conversation Tool</h1>
+    <p id="loading-message">Waiting for users to select their input method...</p> 
+    
+    <p>Need a QR code to join the chat?</p>
+    <div id="qr-code"></div> <!-- QR Code will be generated here -->
+</body>
+</html>

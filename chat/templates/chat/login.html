@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Conversational Tool - Login</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_mobile.css' %}">
+    <script src="{% static 'scripts/scripts.js' %}" defer></script>
+</head>
+<body>
+    <h1>Welcome to the AI Conversational Tool</h1>
+
+    <fieldset>
+        <legend>Join the Conversation</legend>
+
+        <div id="name">
+            <label for="your_name">Your Name:</label>
+            <input type="text" id="your_name" name="your_name" placeholder="Enter your name" required>
+        </div>
+
+        <p>Select Your Input Method:</p>
+        <div id="input_source">
+            <button id="microphone-btn">🎤 Use Microphone</button>
+            <button id="typing-btn">⌨️ Use Typing</button>
+        </div>
+    </fieldset>
+</body>
+</html>

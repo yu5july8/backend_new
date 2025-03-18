@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Conversational Tool</title>
+    <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+    <script src="{% static 'scripts/scripts.js' %}" defer></script>
+</head>
+<body>
+    <h1>AI-Powered Conversational Tool</h1>
+
+    <section id="camera_view">
+        <!-- Placeholder for video stream (if needed in the future) -->
+        <video id="video_feed" autoplay></video>
+    </section>
+
+    <section id="chat">
+        <h2>Live Conversation 2</h2>
+        <div id="chat_display">
+            <!-- Messages from hearing and DHH users will appear here -->
+        </div>
+    </section>
+</body>
+</html>
