@@ -48,11 +48,16 @@ function checkIfLoggedIn() {
     let userName = sessionStorage.getItem("userName");
     let userType = sessionStorage.getItem("userType");
 
+    // ✅ If user is logged in, ensure the correct page loads
     if (userName && userType) {
         console.log("User detected:", userName, "as", userType);
 
-        if (window.location.pathname === "/") {
-            window.location.href = "/chatroom/"; // ✅ Main screen switches to chatroom
+        if (window.location.pathname === "/login/") {
+            if (userType === "hearing-user") {
+                window.location.href = "/speaking/"; // ✅ Redirect speaking users
+            } else {
+                window.location.href = "/typing/"; // ✅ Redirect typing users
+            }
         }
     }
 }
@@ -60,12 +65,19 @@ function checkIfLoggedIn() {
 // ✅ Ensure login page opens ONLY for mobile users (not on index)
 function checkIfMonitor() {
     let userName = sessionStorage.getItem("userName");
-    let userType = sessionStorage.getItem("userType"); // "typing" or "speaking"
 
-    // ✅ Ensure that only mobile users go to login
-    if (!userName && window.location.pathname !== "/") {
-        console.log("Redirecting mobile user to login...");
-        window.location.href = "/login/";
+    // ✅ Redirect ONLY if there is no user AND the page is NOT login
+    if (!userName && window.location.pathname !== "/login/") {
+        console.log("Redirecting to login...");
+
+        // ✅ Prevents multiple redirects (fixes refresh loop)
+        if (!sessionStorage.getItem("redirected")) {
+            sessionStorage.setItem("redirected", "true");
+            window.location.href = "/login/";
+        }
+    } else {
+        console.log("Valid user detected:", userName);
+        sessionStorage.removeItem("redirected"); // ✅ Allow normal behavior after login
     }
 }
 
