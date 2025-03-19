@@ -35,23 +35,39 @@ p {
 }
 
 /* ========== QR Code Styling (Index Page) ========== */
-#qr-container {
+/* QR Code on Index (Centered) */
+#qr-container-index {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
     margin: 30px auto;
     padding: 20px;
     background: white;
     border-radius: 12px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    width: 300px;
-    height: auto;
+    width: 250px;
+    height: 250px;
 }
 
 #qr-code {
-    width: 250px;
-    height: 250px;
+    width: 200px;
+    height: 200px;
+}
+
+/* QR Code in Chatroom (Bottom-Right Corner) */
+#qr-container-chatroom {
+    position: fixed;
+    bottom: 20px;  /* Adjust for corner placement */
+    right: 20px;   /* Adjust for corner placement */
+    width: 120px;
+    height: 120px;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* ========== Chatroom (Desktop Only) ========== */

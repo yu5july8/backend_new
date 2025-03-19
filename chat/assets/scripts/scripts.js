@@ -102,22 +102,40 @@ function notifyMainScreen(userName, userType) {
 
 // ✅ Function to generate QR code dynamically
 function generateQRCode() {
-    let qrContainer = document.getElementById("qr-code");
-    if (qrContainer) {
-        console.log("Generating QR Code...");
-        qrContainer.innerHTML = "";
+    let qrIndex = document.getElementById("qr-code-index");
+    let qrChatroom = document.getElementById("qr-code-chatroom");
 
+    if (qrIndex) {
+        console.log("Generating QR Code for Index...");
+        qrIndex.innerHTML = "";
         try {
-            new QRCode(qrContainer, {
-                text: window.location.origin + "/login/", // ✅ FORCE LOGIN PAGE
+            new QRCode(qrIndex, {
+                text: window.location.origin + "/login/", // ✅ Redirect to login page
                 width: 200,
                 height: 200
             });
-            console.log("QR Code generated successfully.");
+            console.log("QR Code generated successfully (Index).");
         } catch (error) {
-            console.error("Error generating QR Code:", error);
+            console.error("Error generating QR Code for Index:", error);
         }
-    } else {
+    }
+
+    if (qrChatroom) {
+        console.log("Generating QR Code for Chatroom...");
+        qrChatroom.innerHTML = "";
+        try {
+            new QRCode(qrChatroom, {
+                text: window.location.origin + "/login/", // ✅ Also forces login for new users
+                width: 100, // ✅ Smaller size in chatroom
+                height: 100
+            });
+            console.log("QR Code generated successfully (Chatroom).");
+        } catch (error) {
+            console.error("Error generating QR Code for Chatroom:", error);
+        }
+    }
+
+    if (!qrIndex && !qrChatroom) {
         console.error("QR container not found!");
     }
 }
