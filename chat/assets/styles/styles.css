@@ -49,7 +49,7 @@ p {
     height: 250px;
 }
 
-#qr-code {
+#qr-code-index {
     width: 200px;
     height: 200px;
 }
@@ -57,8 +57,8 @@ p {
 /* QR Code in Chatroom (Bottom-Right Corner) */
 #qr-container-chatroom {
     position: fixed;
-    bottom: 20px;  /* Adjust for corner placement */
-    right: 20px;   /* Adjust for corner placement */
+    bottom: 20px;
+    right: 20px;
     width: 120px;
     height: 120px;
     background: white;
@@ -68,6 +68,11 @@ p {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+#qr-code-chatroom {
+    width: 100px;
+    height: 100px;
 }
 
 /* ========== Chatroom (Desktop Only) ========== */
