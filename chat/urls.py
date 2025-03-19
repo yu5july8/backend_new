@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import register_user, send_message, get_messages, index, login_view, typing ,chatroom
+from . import views 
 
 urlpatterns = [
     # API Endpoints
@@ -8,8 +8,11 @@ urlpatterns = [
     path('messages/', get_messages),
 
     # Frontend Pages
-    path('', index, name='index'),  # Homepage
-    path('login/', login_view, name='login'),  # Login page
-    path('chatroom/', chatroom, name='chatroom'),  # Chatroom page
-    path('typing/', typing, name='typing',)
+    path("admin/", admin.site.urls),
+    path("api/chat/", include("chat.urls")),  # API routes
+    path("", views.index, name="index"),  # ✅ Index page
+    path("login/", views.login_view, name="login"),  # ✅ Login page
+    path("chatroom/", views.chatroom, name="chatroom"),  # ✅ Chatroom (Main Monitor)
+    path("typing/", views.typing, name="typing"),  # ✅ Typing page
+    path("speaking/", views.speaking, name="speaking"),
 ]
