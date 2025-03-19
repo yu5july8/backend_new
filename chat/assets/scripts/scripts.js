@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
         generateQRCode();
     }
 
-    // ✅ Only check login if NOT on index page
     if (window.location.pathname !== "/") {
         checkIfLoggedIn();
         checkIfMonitor();
@@ -21,50 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupWebSocket(); // ✅ Enable WebSocket connection
 });
 
-// ✅ Function to generate QR code dynamically
-function generateQRCode() {
-    let qrContainer = document.getElementById("qr-code");
-    if (qrContainer) {
-        console.log("Generating QR Code...");
-        qrContainer.innerHTML = "";
-
-        try {
-            new QRCode(qrContainer, {
-                text: window.location.origin + "/login/",
-                width: 200,
-                height: 200
-            });
-            console.log("QR Code generated successfully.");
-        } catch (error) {
-            console.error("Error generating QR Code:", error);
-        }
-    } else {
-        console.error("QR container not found!");
-    }
-}
-
 // ✅ Ensure chatroom opens ONLY after login
-function checkIfLoggedIn() {
-    let userName = sessionStorage.getItem("userName");
-    let userType = sessionStorage.getItem("userType");
-
-    // ✅ Only redirect mobile users after login
-    if (userName && userType && isMobileDevice()) {
-        console.log("User detected:", userName, "as", userType);
-
-        if (window.location.pathname === "/login/") {
-            if (userType === "hearing-user") {
-                window.location.href = "/speaking/"; // ✅ Hearing users go to speaking
-            } else {
-                window.location.href = "/typing/"; // ✅ DHH users go to typing
-            }
-        }
-    } else {
-        console.log("Main screen or already logged in:", userName);
-    }
-}
-
-// ✅ Ensure login page opens ONLY for mobile users (not on index)
 function checkIfLoggedIn() {
     let userName = sessionStorage.getItem("userName");
     let userType = sessionStorage.getItem("userType");
@@ -72,17 +28,19 @@ function checkIfLoggedIn() {
     if (userName && userType) {
         console.log("User detected:", userName, "as", userType);
 
-        if (isMobileDevice() && window.location.pathname === "/login/") {
-            if (userType === "hearing-user") {
+        if (isMobileDevice()) {
+            // ✅ Redirect mobile users to `speaking.html` or `typing.html`
+            if (userType === "hearing-user" && window.location.pathname !== "/speaking/") {
                 window.location.href = "/speaking/";
-            } else {
+            } else if (userType === "dhh-user" && window.location.pathname !== "/typing/") {
                 window.location.href = "/typing/";
             }
-        }
-
-        // ✅ Make sure the main screen moves to chatroom
-        if (!isMobileDevice() && window.location.pathname === "/") {
-            window.location.href = "/chatroom/"; // ✅ Main screen moves to chatroom
+        } else {
+            // ✅ Ensure the main monitor moves to `chatroom.html`
+            if (window.location.pathname === "/") {
+                console.log("Main monitor detected, moving to chatroom...");
+                window.location.href = "/chatroom/";
+            }
         }
     }
 }
@@ -91,27 +49,6 @@ function checkIfLoggedIn() {
 function isMobileDevice() {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
-
-// Ensure DOM is fully loaded before running any scripts
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM loaded. Running initialization functions...");
-
-    let micButton = document.getElementById("microphone-btn");
-    let typingButton = document.getElementById("typing-btn");
-
-    if (micButton) micButton.addEventListener("click", () => startConversation("hearing-user"));
-    if (typingButton) typingButton.addEventListener("click", () => startConversation("dhh-user"));
-
-    if (document.getElementById("qr-code")) {
-        generateQRCode();
-    }
-
-    checkIfLoggedIn();
-    checkIfMonitor();
-    setupWebSocket(); // ✅ Enable WebSocket connection
-});
-
-
 
 // ✅ Store user's name and input method, then redirect accordingly
 function startConversation(userType) {
@@ -123,28 +60,31 @@ function startConversation(userType) {
         return;
     }
 
-    // ✅ Store login details in session storage
+    // ✅ Store login details
     sessionStorage.setItem("userName", userName);
     sessionStorage.setItem("userType", userType);
 
     console.log("Logging in:", userName, "as", userType);
 
-    // ✅ Redirect mobile users to speaking or typing page
+    // ✅ Redirect mobile users to the correct page
     if (isMobileDevice()) {
         if (userType === "hearing-user") {
-            window.location.href = "/speaking/";  // ✅ Redirect to speaking page
+            console.log("Redirecting to speaking page...");
+            window.location.href = "/speaking/";
         } else {
-            window.location.href = "/typing/";  // ✅ Redirect to typing page
+            console.log("Redirecting to typing page...");
+            window.location.href = "/typing/";
         }
     } else {
-        console.log("Error: User should not be logging in from a non-mobile device.");
+        console.log("Main monitor detected.");
+        sessionStorage.setItem("monitorLoggedIn", "true"); // ✅ Track that the main screen is in use
     }
 
-    // ✅ Notify main screen to update (WebSocket message)
+    // ✅ Notify the main screen to update
     notifyMainScreen(userName, userType);
 }
 
-
+// ✅ Function to notify main screen that a user has joined
 function notifyMainScreen(userName, userType) {
     if (socket.readyState === WebSocket.OPEN) {
         let data = JSON.stringify({
@@ -206,28 +146,6 @@ function displayMessage(user, message, userType) {
     chatDisplay.scrollTop = chatDisplay.scrollHeight;
 }
 
-// ✅ Store user's name and input method, then request microphone if necessary
-function startConversation(userType) {
-    let nameInput = document.getElementById("your_name");
-    let userName = nameInput ? nameInput.value.trim() : "";
-
-    if (!userName) {
-        alert("Please enter your name before proceeding.");
-        return;
-    }
-
-    sessionStorage.setItem("userName", userName);
-    sessionStorage.setItem("userType", userType);
-
-    console.log("Logging in:", userName, "as", userType);
-
-    if (userType === "hearing-user") {
-        requestMicrophonePermission();
-    }
-
-    window.location.href = "/chatroom/";
-}
-
 // ✅ Request Microphone Access
 function requestMicrophonePermission() {
     if (!("webkitSpeechRecognition" in window)) {
@@ -247,7 +165,7 @@ function requestMicrophonePermission() {
     };
 }
 
-// ✅ Function to Start & Stop Speaking (Handles Browser & AI Processing)
+// ✅ Function to Start & Stop Speaking
 function startSpeaking() {
     if ("webkitSpeechRecognition" in window) {
         console.log("Using browser speech recognition...");
@@ -303,45 +221,4 @@ function sendAudioToWhisper(audioBlob) {
         }
     })
     .catch(error => console.error("Error sending audio:", error));
-}
-
-// ✅ Function to send a typed message
-function typingSentence() {
-    let inputField = document.getElementById("type_chat_box");
-    if (inputField) {
-        let message = inputField.value.trim();
-        if (message !== "") {
-            sendMessage(message, "dhh-user");
-            inputField.value = "";
-        }
-    }
-}
-
-// ✅ Function to send a message (Handles Both Typing & Speech)
-function sendMessage(message, userType) {
-    let userName = sessionStorage.getItem("userName") || (userType === "hearing-user" ? "Hearing User" : "DHH User");
-
-    let data = JSON.stringify({ user: userName, message: message, user_type: userType });
-
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(data); // ✅ Send via WebSocket
-    } else {
-        fetch("/api/chat/send/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: data
-        });
-    }
-}
-
-// ✅ Display Message in Chatroom
-function displayMessage(user, message, userType) {
-    let chatDisplay = document.getElementById("chat_display");
-    let messageElement = document.createElement("p");
-    messageElement.textContent = `${user}: ${message}`;
-    messageElement.style.color = userType === "hearing-user" ? "blue" : "green";
-    messageElement.style.fontWeight = "bold";
-
-    chatDisplay.appendChild(messageElement);
-    chatDisplay.scrollTop = chatDisplay.scrollHeight;
 }
