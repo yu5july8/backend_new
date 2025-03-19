@@ -105,7 +105,7 @@ function generateQRCode() {
 
         try {
             new QRCode(qrContainer, {
-                text: window.location.origin + "/login/",
+                text: window.location.origin + "/login/", // ✅ Always direct to login
                 width: 200,
                 height: 200
             });
@@ -164,6 +164,32 @@ function requestMicrophonePermission() {
         }
     };
 }
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    let reactions = {
+        "good-btn": "👍",
+        "smile-btn": "😊",
+        "laugh-btn": "😂",
+        "angry-btn": "😠"
+    };
+
+    for (let id in reactions) {
+        let button = document.getElementById(id);
+        if (button) {
+            button.addEventListener("click", function () {
+                sendReaction(reactions[id]);
+            });
+        }
+    }
+});
+
+// ✅ Function to Send Reaction
+function sendReaction(emoji) {
+    console.log("Sending reaction:", emoji);
+    sendMessage(emoji, "dhh-user"); // ✅ Reaction messages now work
+}
+
 
 // ✅ Function to Start & Stop Speaking
 function startSpeaking() {
