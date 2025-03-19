@@ -29,14 +29,18 @@ function checkIfLoggedIn() {
         console.log("User detected:", userName, "as", userType);
 
         if (isMobileDevice()) {
-            // ✅ Redirect mobile users to `speaking.html` or `typing.html`
-            if (userType === "hearing-user" && window.location.pathname !== "/speaking/") {
-                window.location.href = "/speaking/";
-            } else if (userType === "dhh-user" && window.location.pathname !== "/typing/") {
-                window.location.href = "/typing/";
+            // ✅ Only redirect AFTER the user selects input type
+            if (window.location.pathname === "/login/") {
+                if (userType === "hearing-user") {
+                    console.log("Redirecting to speaking page...");
+                    window.location.href = "/speaking/";
+                } else {
+                    console.log("Redirecting to typing page...");
+                    window.location.href = "/typing/";
+                }
             }
         } else {
-            // ✅ Ensure the main monitor moves to `chatroom.html`
+            // ✅ Main monitor should move to chatroom
             if (window.location.pathname === "/") {
                 console.log("Main monitor detected, moving to chatroom...");
                 window.location.href = "/chatroom/";
@@ -105,7 +109,7 @@ function generateQRCode() {
 
         try {
             new QRCode(qrContainer, {
-                text: window.location.origin + "/login/", // ✅ Always direct to login
+                text: window.location.origin + "/login/", // ✅ FORCE LOGIN PAGE
                 width: 200,
                 height: 200
             });
