@@ -51,9 +51,8 @@ function checkIfLoggedIn() {
     if (userName && userType) {
         console.log("User detected:", userName, "as", userType);
 
-        // ✅ If already on chatroom, do nothing
-        if (window.location.pathname !== "/chatroom/") {
-            window.location.href = "/chatroom/";
+        if (window.location.pathname === "/") {
+            window.location.href = "/chatroom/"; // ✅ Main screen switches to chatroom
         }
     }
 }
@@ -61,10 +60,11 @@ function checkIfLoggedIn() {
 // ✅ Ensure login page opens ONLY for mobile users (not on index)
 function checkIfMonitor() {
     let userName = sessionStorage.getItem("userName");
+    let userType = sessionStorage.getItem("userType"); // "typing" or "speaking"
 
-    // ✅ Only redirect if on a user page (not index)
+    // ✅ Ensure that only mobile users go to login
     if (!userName && window.location.pathname !== "/") {
-        console.log("No valid user, redirecting to login...");
+        console.log("Redirecting mobile user to login...");
         window.location.href = "/login/";
     }
 }
@@ -105,14 +105,12 @@ function startConversation(userType) {
 
     console.log("Logging in:", userName, "as", userType);
 
-    // Redirect based on input type
+    // ✅ Redirect based on input type
     if (userType === "hearing-user") {
         requestMicrophonePermission();
         window.location.href = "/speaking/";
-    } else if (userType === "dhh-user") {
-        window.location.href = "/typing/";
     } else {
-        window.location.href = "/chatroom/";
+        window.location.href = "/typing/";
     }
 }
 
