@@ -48,17 +48,19 @@ function checkIfLoggedIn() {
     let userName = sessionStorage.getItem("userName");
     let userType = sessionStorage.getItem("userType");
 
-    // ✅ If user is logged in, ensure the correct page loads
-    if (userName && userType) {
+    // ✅ Only redirect mobile users after login
+    if (userName && userType && isMobileDevice()) {
         console.log("User detected:", userName, "as", userType);
 
         if (window.location.pathname === "/login/") {
             if (userType === "hearing-user") {
-                window.location.href = "/speaking/"; // ✅ Redirect speaking users
+                window.location.href = "/speaking/"; // ✅ Hearing users go to speaking
             } else {
-                window.location.href = "/typing/"; // ✅ Redirect typing users
+                window.location.href = "/typing/"; // ✅ DHH users go to typing
             }
         }
+    } else {
+        console.log("Main screen or already logged in:", userName);
     }
 }
 
@@ -66,19 +68,24 @@ function checkIfLoggedIn() {
 function checkIfMonitor() {
     let userName = sessionStorage.getItem("userName");
 
-    // ✅ Redirect ONLY if there is no user AND the page is NOT login
-    if (!userName && window.location.pathname !== "/login/") {
-        console.log("Redirecting to login...");
+    // ✅ Only redirect mobile users to login, but NOT the main monitor (index page)
+    if (!userName && isMobileDevice() && window.location.pathname !== "/login/") {
+        console.log("Redirecting mobile user to login...");
 
-        // ✅ Prevents multiple redirects (fixes refresh loop)
+        // ✅ Prevent multiple redirects
         if (!sessionStorage.getItem("redirected")) {
             sessionStorage.setItem("redirected", "true");
             window.location.href = "/login/";
         }
     } else {
-        console.log("Valid user detected:", userName);
+        console.log("Main screen detected OR user already logged in:", userName);
         sessionStorage.removeItem("redirected"); // ✅ Allow normal behavior after login
     }
+}
+
+// ✅ Function to Detect Mobile Devices
+function isMobileDevice() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 // Ensure DOM is fully loaded before running any scripts
