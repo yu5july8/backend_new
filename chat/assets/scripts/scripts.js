@@ -65,21 +65,25 @@ function checkIfLoggedIn() {
 }
 
 // ✅ Ensure login page opens ONLY for mobile users (not on index)
-function checkIfMonitor() {
+function checkIfLoggedIn() {
     let userName = sessionStorage.getItem("userName");
+    let userType = sessionStorage.getItem("userType");
 
-    // ✅ Only redirect mobile users to login, but NOT the main monitor (index page)
-    if (!userName && isMobileDevice() && window.location.pathname !== "/login/") {
-        console.log("Redirecting mobile user to login...");
+    if (userName && userType) {
+        console.log("User detected:", userName, "as", userType);
 
-        // ✅ Prevent multiple redirects
-        if (!sessionStorage.getItem("redirected")) {
-            sessionStorage.setItem("redirected", "true");
-            window.location.href = "/login/";
+        if (isMobileDevice() && window.location.pathname === "/login/") {
+            if (userType === "hearing-user") {
+                window.location.href = "/speaking/";
+            } else {
+                window.location.href = "/typing/";
+            }
         }
-    } else {
-        console.log("Main screen detected OR user already logged in:", userName);
-        sessionStorage.removeItem("redirected"); // ✅ Allow normal behavior after login
+
+        // ✅ Make sure the main screen moves to chatroom
+        if (!isMobileDevice() && window.location.pathname === "/") {
+            window.location.href = "/chatroom/"; // ✅ Main screen moves to chatroom
+        }
     }
 }
 
@@ -119,17 +123,36 @@ function startConversation(userType) {
         return;
     }
 
+    // ✅ Store login details in session storage
     sessionStorage.setItem("userName", userName);
     sessionStorage.setItem("userType", userType);
 
     console.log("Logging in:", userName, "as", userType);
 
-    // ✅ Redirect based on input type
-    if (userType === "hearing-user") {
-        requestMicrophonePermission();
-        window.location.href = "/speaking/";
+    // ✅ Redirect mobile users to speaking or typing page
+    if (isMobileDevice()) {
+        if (userType === "hearing-user") {
+            window.location.href = "/speaking/";  // ✅ Redirect to speaking page
+        } else {
+            window.location.href = "/typing/";  // ✅ Redirect to typing page
+        }
     } else {
-        window.location.href = "/typing/";
+        console.log("Error: User should not be logging in from a non-mobile device.");
+    }
+
+    // ✅ Notify main screen to update (WebSocket message)
+    notifyMainScreen(userName, userType);
+}
+
+
+function notifyMainScreen(userName, userType) {
+    if (socket.readyState === WebSocket.OPEN) {
+        let data = JSON.stringify({
+            event: "user_joined",
+            user: userName,
+            user_type: userType
+        });
+        socket.send(data);
     }
 }
 
@@ -227,10 +250,10 @@ function requestMicrophonePermission() {
 // ✅ Function to Start & Stop Speaking (Handles Browser & AI Processing)
 function startSpeaking() {
     if ("webkitSpeechRecognition" in window) {
-        console.log("Using local speech recognition...");
+        console.log("Using browser speech recognition...");
         recognition.start();
     } else {
-        console.log("Browser does not support speech recognition. Using AI processing...");
+        console.log("Browser does not support speech recognition. Using AI...");
         requestMicrophoneAndUpload();
     }
 }
