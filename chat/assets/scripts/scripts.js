@@ -1,6 +1,5 @@
 // Ensure DOM is fully loaded before running any scripts
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("This is")
     console.log("DOM loaded. Running initialization functions...");
 
     let micButton = document.getElementById("microphone-btn");
@@ -13,8 +12,12 @@ document.addEventListener("DOMContentLoaded", function () {
         generateQRCode();
     }
 
-    checkIfLoggedIn();
-    checkIfMonitor();
+    // ✅ Only check login if NOT on index page
+    if (window.location.pathname !== "/") {
+        checkIfLoggedIn();
+        checkIfMonitor();
+    }
+
     setupWebSocket(); // ✅ Enable WebSocket connection
 });
 
@@ -40,6 +43,32 @@ function generateQRCode() {
     }
 }
 
+// ✅ Ensure chatroom opens ONLY after login
+function checkIfLoggedIn() {
+    let userName = sessionStorage.getItem("userName");
+    let userType = sessionStorage.getItem("userType");
+
+    if (userName && userType) {
+        console.log("User detected:", userName, "as", userType);
+
+        // ✅ If already on chatroom, do nothing
+        if (window.location.pathname !== "/chatroom/") {
+            window.location.href = "/chatroom/";
+        }
+    }
+}
+
+// ✅ Ensure login page opens ONLY for mobile users (not on index)
+function checkIfMonitor() {
+    let userName = sessionStorage.getItem("userName");
+
+    // ✅ Only redirect if on a user page (not index)
+    if (!userName && window.location.pathname !== "/") {
+        console.log("No valid user, redirecting to login...");
+        window.location.href = "/login/";
+    }
+}
+
 // Ensure DOM is fully loaded before running any scripts
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM loaded. Running initialization functions...");
@@ -59,40 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setupWebSocket(); // ✅ Enable WebSocket connection
 });
 
-// ✅ Function to check if a user is logged in and redirect correctly
-function checkIfLoggedIn() {
-    let userName = sessionStorage.getItem("userName");
-    let userType = sessionStorage.getItem("userType");
 
-    if (userName && userType) {
-        console.log("User detected:", userName, "as", userType);
-
-        // If on a mobile device, redirect to respective page
-        if (userType === "hearing-user" && window.location.pathname !== "/speaking/") {
-            window.location.href = "/speaking/";
-        } else if (userType === "dhh-user" && window.location.pathname !== "/typing/") {
-            window.location.href = "/typing/";
-        } else if (!userType && window.location.pathname !== "/chatroom/") {
-            window.location.href = "/chatroom/";
-        }
-    }
-}
-
-// ✅ Function to check if this is the chatroom monitor
-function checkIfMonitor() {
-    let userName = sessionStorage.getItem("userName");
-
-    if (!userName) {
-        console.log("Monitor detected, redirecting to login...");
-        
-        // ✅ Prevent continuous redirects
-        if (window.location.pathname !== "/login/") {
-            window.location.href = "/login/";
-        }
-    } else {
-        console.log("Valid user detected:", userName);
-    }
-}
 
 // ✅ Store user's name and input method, then redirect accordingly
 function startConversation(userType) {
