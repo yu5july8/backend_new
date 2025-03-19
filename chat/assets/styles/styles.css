@@ -1,4 +1,4 @@
-/* Reset Styles */
+/* ========== Reset Styles ========== */
 * {
     margin: 0;
     padding: 0;
@@ -6,14 +6,20 @@
     font-family: 'Arial', sans-serif;
 }
 
+/* ========== Global Layout (Desktop Only) ========== */
 body {
     background-color: #f4f4f4;
     color: #333;
     text-align: center;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
 }
 
-/* Global Styles */
+/* ========== Global Typography ========== */
 h1 {
     font-size: 2.5rem;
     font-weight: bold;
@@ -28,90 +34,40 @@ p {
     color: #444;
 }
 
-/* Buttons */
-button, input[type="button"], input[type="submit"] {
-    font-size: 1.1rem;
-    padding: 12px 24px;
-    margin: 10px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-button:hover, input[type="button"]:hover, input[type="submit"]:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
-}
-
-/* QR Code - index.html */
-/* Center QR Code */
-.qr-container {
+/* ========== QR Code Styling (Index Page) ========== */
+#qr-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column; /* Stack elements vertically */
-    height: 50vh; /* Adjust height for better centering */
-    margin-top: 20px; /* Adjust margin if necessary */
-}
-
-/* QR Code */
-#qr-code {
-    max-width: 250px;
-    height: auto;
-    display: block;
-    padding: 10px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Login Page - login.html */
-fieldset {
-    border: 2px solid #007bff;
+    flex-direction: column;
+    margin: 30px auto;
     padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    margin: auto;
-    background-color: #ffffff;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    height: auto;
 }
 
-label {
-    display: block;
-    font-size: 1.2rem;
-    margin-bottom: 5px;
-    font-weight: bold;
+#qr-code {
+    width: 250px;
+    height: 250px;
 }
 
-input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    font-size: 1.1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    background-color: #f9f9f9;
-}
-
-
-
-/* Chatroom Page - chatroom.html */
+/* ========== Chatroom (Desktop Only) ========== */
 #chat {
     background-color: white;
     padding: 20px;
     border-radius: 12px;
-    width: 90%;
-    max-width: 800px;
+    width: 80%;
+    max-width: 1000px;
     margin: auto;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 #chat_display {
     width: 100%;
-    min-height: 400px;
+    min-height: 500px;
     background-color: #f9f9f9;
     border: 1px solid #ccc;
     padding: 15px;
@@ -121,55 +77,68 @@ input[type="text"] {
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Exit Page - exit.html */
-#feedback-link {
-    color: #007bff;
-    font-weight: bold;
-    text-decoration: underline;
-}
-
-#feedback-link:hover {
-    color: #0056b3;
-}
-
-#exit-button {
-    background-color: red;
+/* ========== Buttons ========== */
+button {
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    margin: 10px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+    background-color: #007bff;
     color: white;
-    margin-top: 20px;
 }
 
-/* Loading Page - loading.html */
-#loading-message {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-top: 30px;
-    color: #666;
-    animation: fadeIn 1.5s infinite alternate;
+button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
-/* Loading Animation */
-@keyframes fadeIn {
-    from { opacity: 0.5; }
-    to { opacity: 1; }
+/* ========== Typing & Speaking Pages (Mobile Only) ========== */
+.speaking_box,
+#typing_box {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    margin: auto;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive Design */
-@media (max-width: 600px) {
-    h1 {
-        font-size: 2rem;
-    }
+#chat_box, #type_chat_box {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background-color: #f9f9f9;
+}
 
-    p {
-        font-size: 1rem;
-    }
+#send-button, #speak-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-    fieldset, .speaking_box, #typing_box, #chat {
-        width: 100%;
-        padding: 15px;
+/* ========== Hide Mobile-Only Pages on Desktop ========== */
+@media (min-width: 801px) {
+    .speaking_box, #typing_box {
+        display: none; /* Hides these pages on larger screens */
     }
+}
 
-    button {
-        font-size: 1rem;
-        padding: 10px 15px;
+/* ========== Hide Desktop-Only Pages on Mobile ========== */
+@media (max-width: 800px) {
+    #chat, #qr-container {
+        display: none; /* Hides these pages on smaller screens */
     }
 }
