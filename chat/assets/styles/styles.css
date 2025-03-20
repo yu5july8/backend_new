@@ -35,7 +35,7 @@ p {
 }
 
 /* ========== QR Code Styling (Index Page) ========== */
-/* QR Code on Index (Centered) */
+/* ✅ Center QR Code for Index Page */
 #qr-container-index {
     display: flex;
     justify-content: center;
@@ -54,20 +54,17 @@ p {
     height: 200px;
 }
 
-/* QR Code in Chatroom (Bottom-Right Corner) */
+/* ✅ Position QR Code in Chatroom Corner */
 #qr-container-chatroom {
-    position: fixed;
-    bottom: 20px;
+    position: absolute;
+    top: 20px;
     right: 20px;
-    width: 120px;
-    height: 120px;
     background: white;
     padding: 10px;
     border-radius: 8px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 120px;
+    height: 120px;
 }
 
 #qr-code-chatroom {

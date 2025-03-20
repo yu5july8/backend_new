@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     setupWebSocket(); // ✅ Enable WebSocket connection
+    console.log("DOM fully loaded. Running QR Code generator...");
+    generateQRCode();
 });
 
 // ✅ Ensure chatroom opens ONLY after login
@@ -100,6 +102,8 @@ function notifyMainScreen(userName, userType) {
     }
 }
 
+document.getElementById("qr-code-index")
+document.getElementById("qr-code-chatroom")
 function generateQRCode() {
     let qrIndex = document.getElementById("qr-code-index");
     let qrChatroom = document.getElementById("qr-code-chatroom");
