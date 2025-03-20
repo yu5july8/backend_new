@@ -229,17 +229,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// ✅ Function to Send Reaction
-function sendReaction(emoji) {
-    console.log("Sending reaction:", emoji);
-    sendMessage(emoji, "dhh-user"); // ✅ Reaction messages now work
-}
+let recognition;
+let mediaRecorder;
+let audioChunks = [];
 
-
-// ✅ Function to Start & Stop Speaking
+// ✅ Function to start speaking when button is held
 function startSpeaking() {
     if ("webkitSpeechRecognition" in window) {
         console.log("Using browser speech recognition...");
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onstart = () => console.log("Speech recognition started...");
+        recognition.onresult = (event) => {
+            let transcript = event.results[0][0].transcript;
+            console.log("Recognized speech:", transcript);
+            sendMessage(transcript, "hearing-user");  // ✅ Send recognized text as a message
+        };
+        recognition.onerror = (event) => console.error("Speech recognition error:", event);
+        recognition.onend = () => console.log("Speech recognition ended.");
+
         recognition.start();
     } else {
         console.log("Browser does not support speech recognition. Using AI...");
@@ -247,12 +258,25 @@ function startSpeaking() {
     }
 }
 
+// ✅ Function to stop speaking when button is released
+function stopSpeaking() {
+    if (recognition) {
+        recognition.stop();
+        console.log("Speech recognition stopped.");
+    }
+
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        console.log("Recording stopped.");
+    }
+}
+
 // ✅ Request Microphone & Upload to Whisper API
 function requestMicrophoneAndUpload() {
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
-            let mediaRecorder = new MediaRecorder(stream);
-            let audioChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
 
             mediaRecorder.ondataavailable = event => {
                 audioChunks.push(event.data);
@@ -264,9 +288,6 @@ function requestMicrophoneAndUpload() {
             };
 
             mediaRecorder.start();
-            setTimeout(() => {
-                mediaRecorder.stop();
-            }, 5000);
         })
         .catch(error => {
             console.error("Microphone access denied:", error);
@@ -274,7 +295,7 @@ function requestMicrophoneAndUpload() {
         });
 }
 
-// ✅ Send Audio to Django API (Whisper)
+// ✅ Function to Send Audio to Django API (Whisper)
 function sendAudioToWhisper(audioBlob) {
     let formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
@@ -286,7 +307,7 @@ function sendAudioToWhisper(audioBlob) {
     .then(response => response.json())
     .then(data => {
         if (data.text) {
-            sendMessage(data.text, "hearing-user");
+            sendMessage(data.text, "hearing-user"); // ✅ Send recognized text as a message
         } else {
             console.error("Error from API:", data.error);
         }
