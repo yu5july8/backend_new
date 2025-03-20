@@ -17,4 +17,6 @@ urlpatterns = [
     path("chatroom/", views.chatroom, name="chatroom"),  # ✅ Chatroom (Main Monitor)
     path("typing/", views.typing, name="typing"),  # ✅ Typing page
     path("speaking/", views.speaking, name="speaking"),  # ✅ Speaking page
+    path("messages/", get_messages, name="get_messages"),  # ✅ Ensure API route exists
+    path("send/", send_message, name="send_message"),
 ]

@@ -146,7 +146,11 @@ function generateQRCode() {
 // ✅ WebSocket Setup for Real-Time Chat
 let socket;
 function setupWebSocket() {
-    socket = new WebSocket("ws://127.0.0.1:8000/ws/chatroom/");
+    let wsUrl = window.location.protocol === "https:" 
+                ? "wss://backend-new-pmbf.onrender.com/ws/chatroom/" 
+                : "ws://127.0.0.1:8000/ws/chatroom/";
+
+    socket = new WebSocket(wsUrl);
 
     socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
@@ -155,7 +159,7 @@ function setupWebSocket() {
 
     socket.onclose = function () {
         console.warn("WebSocket disconnected. Falling back to polling...");
-        setInterval(fetchMessages, 3000); // Polling fallback every 3 seconds
+        setInterval(fetchMessages, 3000);
     };
 }
 
