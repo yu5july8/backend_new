@@ -31,23 +31,25 @@ function checkIfLoggedIn() {
         console.log("User detected:", userName, "as", userType);
 
         if (isMobileDevice()) {
-            // ✅ Only redirect AFTER the user selects input type
+            // ✅ If user is on the login page and has selected an input method, redirect them
             if (window.location.pathname === "/login/") {
                 if (userType === "hearing-user") {
                     console.log("Redirecting to speaking page...");
                     window.location.href = "/speaking/";
-                } else {
+                } else if (userType === "dhh-user") {
                     console.log("Redirecting to typing page...");
                     window.location.href = "/typing/";
                 }
             }
         } else {
-            // ✅ Main monitor should move to chatroom
+            // ✅ Ensure main monitor moves to chatroom when a user logs in
             if (window.location.pathname === "/") {
                 console.log("Main monitor detected, moving to chatroom...");
                 window.location.href = "/chatroom/";
             }
         }
+    } else {
+        console.log("No logged-in user detected.");
     }
 }
 
@@ -145,21 +147,29 @@ function generateQRCode() {
 
 // ✅ WebSocket Setup for Real-Time Chat
 let socket;
-function setupWebSocket() {
-    let wsUrl = window.location.protocol === "https:" 
-                ? "wss://backend-new-pmbf.onrender.com/ws/chatroom/" 
-                : "ws://127.0.0.1:8000/ws/chatroom/";
 
+function setupWebSocket() {
+    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
+    
     socket = new WebSocket(wsUrl);
+
+    socket.onopen = function () {
+        console.log("WebSocket connected successfully!");
+    };
 
     socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
         displayMessage(data.user, data.message, data.user_type);
     };
 
+    socket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+    };
+
     socket.onclose = function () {
         console.warn("WebSocket disconnected. Falling back to polling...");
-        setInterval(fetchMessages, 3000);
+        setInterval(fetchMessages, 3000); // Polling fallback every 3 seconds
     };
 }
 
@@ -237,6 +247,7 @@ let audioChunks = [];
 function startSpeaking() {
     if ("webkitSpeechRecognition" in window) {
         console.log("Using browser speech recognition...");
+
         recognition = new webkitSpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = false;
@@ -271,7 +282,7 @@ function stopSpeaking() {
     }
 }
 
-// ✅ Request Microphone & Upload to Whisper API
+// ✅ Function to request microphone & upload to AI speech-to-text API
 function requestMicrophoneAndUpload() {
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
@@ -295,7 +306,7 @@ function requestMicrophoneAndUpload() {
         });
 }
 
-// ✅ Function to Send Audio to Django API (Whisper)
+// ✅ Send Audio to Django API (Whisper)
 function sendAudioToWhisper(audioBlob) {
     let formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
@@ -313,4 +324,21 @@ function sendAudioToWhisper(audioBlob) {
         }
     })
     .catch(error => console.error("Error sending audio:", error));
+}
+
+// ✅ Function to send messages to chatroom
+function sendMessage(message, userType) {
+    let userName = sessionStorage.getItem("userName") || (userType === "hearing-user" ? "Hearing User" : "DHH User");
+
+    let data = JSON.stringify({ user: userName, message: message, user_type: userType });
+
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(data); // ✅ Send via WebSocket
+    } else {
+        fetch("/api/chat/send/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: data
+        });
+    }
 }
