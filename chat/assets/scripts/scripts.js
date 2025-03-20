@@ -100,21 +100,20 @@ function notifyMainScreen(userName, userType) {
     }
 }
 
-// ✅ Function to generate QR code dynamically
 function generateQRCode() {
     let qrIndex = document.getElementById("qr-code-index");
     let qrChatroom = document.getElementById("qr-code-chatroom");
 
     if (qrIndex) {
         console.log("Generating QR Code for Index...");
-        qrIndex.innerHTML = "";
+        qrIndex.innerHTML = ""; // ✅ Clear previous QR code
         try {
             new QRCode(qrIndex, {
-                text: window.location.origin + "/login/", // ✅ Redirect to login page
+                text: window.location.origin + "/login/", 
                 width: 200,
                 height: 200
             });
-            console.log("QR Code generated successfully (Index).");
+            console.log("QR Code (Index) generated successfully.");
         } catch (error) {
             console.error("Error generating QR Code for Index:", error);
         }
@@ -122,14 +121,14 @@ function generateQRCode() {
 
     if (qrChatroom) {
         console.log("Generating QR Code for Chatroom...");
-        qrChatroom.innerHTML = "";
+        qrChatroom.innerHTML = ""; // ✅ Clear previous QR code
         try {
             new QRCode(qrChatroom, {
-                text: window.location.origin + "/login/", // ✅ Also forces login for new users
-                width: 100, // ✅ Smaller size in chatroom
+                text: window.location.origin + "/login/",
+                width: 100,
                 height: 100
             });
-            console.log("QR Code generated successfully (Chatroom).");
+            console.log("QR Code (Chatroom) generated successfully.");
         } catch (error) {
             console.error("Error generating QR Code for Chatroom:", error);
         }
