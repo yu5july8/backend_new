@@ -20,11 +20,11 @@ from django.urls import path, include
 from chat import views  # Import chat app views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/chat/', include('chat.urls')),  # API routes
-    path('', views.index, name='index'),  # Homepage
-    path('login/', views.login_view, name='login'),  # Login page
-    path('chatroom/', views.chatroom, name='chatroom'),  # Chatroom page
-    path('typing/', views.typing, name='typing'), #typing page
-    path('speaking', views.speaking, name='speaking')
+    path("admin/", admin.site.urls),
+    path("api/chat/", include("chat.urls")),  # ✅ API routes
+    path("", views.index, name="index"),  # ✅ Index page
+    path("login/", views.login_view, name="login"),  # ✅ Login page
+    path("chatroom/", views.chatroom, name="chatroom"),  # ✅ Chatroom (Main Monitor)
+    path("typing/", views.typing, name="typing"),  # ✅ Typing page
+    path("speaking/", views.speaking, name="speaking"),  # ✅ Speaking page
 ]
