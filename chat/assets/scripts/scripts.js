@@ -159,6 +159,22 @@ function setupWebSocket() {
     };
 }
 
+function fetchMessages() {
+    fetch("/api/chat/messages/")
+        .then(response => response.json())
+        .then(messages => {
+            let chatDisplay = document.getElementById("chat_display");
+            chatDisplay.innerHTML = "";  // Clear existing messages
+
+            messages.forEach(msg => {
+                displayMessage(msg.user, msg.text, msg.user_type);
+            });
+
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        })
+        .catch(error => console.error("Error fetching messages:", error));
+}
+
 // ✅ Display Message in Chatroom
 function displayMessage(user, message, userType) {
     let chatDisplay = document.getElementById("chat_display");
