@@ -242,44 +242,46 @@ document.addEventListener("DOMContentLoaded", function () {
 let recognition;
 let mediaRecorder;
 let audioChunks = [];
+// ✅ Declare global recognition instance
 
-// ✅ Function to start speaking when button is held
-function startSpeaking() {
-    if ("webkitSpeechRecognition" in window) {
-        console.log("Using browser speech recognition...");
+if ("webkitSpeechRecognition" in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
 
-        recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
+    recognition.onresult = function (event) {
+        let transcript = event.results[0][0].transcript;
+        console.log("Recognized Speech:", transcript);
+        sendMessage(transcript, "hearing-user"); // ✅ Send recognized speech to chat
+    };
 
-        recognition.onstart = () => console.log("Speech recognition started...");
-        recognition.onresult = (event) => {
-            let transcript = event.results[0][0].transcript;
-            console.log("Recognized speech:", transcript);
-            sendMessage(transcript, "hearing-user");  // ✅ Send recognized text as a message
-        };
-        recognition.onerror = (event) => console.error("Speech recognition error:", event);
-        recognition.onend = () => console.log("Speech recognition ended.");
+    recognition.onerror = function (event) {
+        console.error("Speech recognition error:", event.error);
+    };
 
-        recognition.start();
-    } else {
-        console.log("Browser does not support speech recognition. Using AI...");
-        requestMicrophoneAndUpload();
-    }
+    recognition.onend = function () {
+        console.log("Speech recognition ended.");
+    };
+} else {
+    console.warn("Browser does not support Speech Recognition.");
 }
 
-// ✅ Function to stop speaking when button is released
-function stopSpeaking() {
-    if (recognition) {
-        recognition.stop();
-        console.log("Speech recognition stopped.");
+// ✅ Start Speaking
+function startSpeaking() {
+    if (!recognition) {
+        alert("Speech recognition is not supported in this browser.");
+        return;
     }
 
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
-        console.log("Recording stopped.");
-    }
+    console.log("Starting speech recognition...");
+    recognition.start();
+}
+
+// ✅ Stop Speaking
+function stopSpeaking() {
+    if (!recognition) return;
+    console.log("Stopping speech recognition...");
+    recognition.stop();
 }
 
 // ✅ Function to request microphone & upload to AI speech-to-text API
