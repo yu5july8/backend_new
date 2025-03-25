@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // ✅ Ensure chatroom opens ONLY after login
 function checkIfLoggedIn() {
-    let userName = sessionStorage.getItem("userName");
+    let nameInput = document.getElementById("userName");
+    let userName = nameInput ? nameInput.value.trim() : "";
     let userType = sessionStorage.getItem("userType");
 
     if (userName && userType) {
