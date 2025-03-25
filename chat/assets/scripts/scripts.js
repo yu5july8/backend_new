@@ -60,7 +60,7 @@ function isMobileDevice() {
 
 // ✅ Store user's name and input method, then redirect accordingly
 function startConversation(userType) {
-    let nameInput = document.getElementById("your_name");
+    let nameInput = document.getElementById("userName");
     let userName = nameInput ? nameInput.value.trim() : "";
 
     if (!userName) {
