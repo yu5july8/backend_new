@@ -98,10 +98,9 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",  # This will create db.sqlite3 in your root project
     }
 }
-
 
 # Allow frontend to connect (for testing)
 CORS_ALLOW_ALL_ORIGINS = True

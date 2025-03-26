@@ -5,6 +5,7 @@ from .serializers import UserSerializer, MessageSerializer
 from django.shortcuts import render
 import openai
 import os
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from django.core.files.storage import default_storage
@@ -89,3 +90,21 @@ def speech_to_text(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def save_message(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        username = data.get("user")
+        message = data.get("message")
+        user_type = data.get("user_type")
+
+        if username and message and user_type:
+            Conversation.objects.create(
+                username=username,
+                message=message,
+                user_type=user_type
+            )
+            return JsonResponse({"status": "success"})
+        return JsonResponse({"status": "failed", "error": "Missing fields"}, status=400)

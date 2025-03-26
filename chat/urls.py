@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from .views import register_user, send_message, get_messages, speech_to_text
+from .views import save_message
 from . import views
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path("speaking/", views.speaking, name="speaking"),  # ✅ Speaking page
     path("messages/", get_messages, name="get_messages"),  # ✅ Ensure API route exists
     path("send/", send_message, name="send_message"),
+    path("save/", save_message),
 ]

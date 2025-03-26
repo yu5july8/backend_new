@@ -10,3 +10,15 @@ class Message(models.Model):
     content = models.TextField()
     message_type = models.CharField(max_length=10, choices=[("text", "Text"), ("speech", "Speech")])
     timestamp = models.DateTimeField(auto_now_add=True)
+
+class Conversation(models.Model):
+    username = models.CharField(max_length=100)
+    message = models.TextField()
+    user_type = models.CharField(max_length=20, choices=[
+        ('hearing-user', 'Hearing User'),
+        ('dhh-user', 'DHH User')
+    ])
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.timestamp} - {self.username}: {self.message}"

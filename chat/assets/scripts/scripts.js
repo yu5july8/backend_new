@@ -411,19 +411,25 @@ function sendAudioToWhisper(audioBlob) {
     .catch(error => console.error("Error sending audio:", error));
 }
 
-// ✅ Function to send messages to chatroom
+
 function sendMessage(message, userType) {
     let userName = sessionStorage.getItem("userName") || (userType === "hearing-user" ? "Hearing User" : "DHH User");
 
-    let data = JSON.stringify({ user: userName, message: message, user_type: userType });
+    let data = {
+        user: userName,
+        message: message,
+        user_type: userType
+    };
 
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(data); // ✅ Send via WebSocket
-    } else {
-        fetch("/api/chat/send/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: data
-        });
+    // Send via WebSocket
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
     }
+
+    // Save to DB
+    fetch("/api/chat/save/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
 }
