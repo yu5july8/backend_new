@@ -1,16 +1,16 @@
+import json  # ✅ Add this at the top
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import User, Message
 from .serializers import UserSerializer, MessageSerializer
 from django.shortcuts import render
 import openai
 import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings  # ✅ Correct import
+from .models import User, Message, Conversation
 
 # Configure OpenAI API
 openai.api_key = settings.OPENAI_API_KEY
@@ -40,7 +40,7 @@ def loading(request):
     return render(request, "chat/loading.html")
 
 
-
+@csrf_exempt
 @api_view(['POST'])
 def register_user(request):
     """Register a new user."""
@@ -50,6 +50,7 @@ def register_user(request):
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
 
+@csrf_exempt
 @api_view(['POST'])
 def send_message(request):
     """Send a chat message."""
@@ -59,6 +60,7 @@ def send_message(request):
         return Response(serializer.data)
     return Response(serializer.errors, status=400)
 
+@csrf_exempt
 @api_view(['GET'])
 def get_messages(request):
     """Fetch all chat messages."""
@@ -66,6 +68,7 @@ def get_messages(request):
     serializer = MessageSerializer(messages, many=True)
     return Response(serializer.data)
 
+@csrf_exempt
 @api_view(['POST'])
 def speech_to_text(request):
     """Converts an uploaded audio file into text using OpenAI Whisper API."""
@@ -91,7 +94,7 @@ def speech_to_text(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
+@csrf_exempt
 @csrf_exempt
 def save_message(request):
     if request.method == "POST":
