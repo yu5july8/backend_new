@@ -59,6 +59,21 @@ function isMobileDevice() {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+function checkIfMonitor() {
+    let userName = sessionStorage.getItem("userName");
+
+    if (!userName) {
+        console.log("Monitor detected, redirecting to login...");
+        
+        // ✅ Prevent continuous redirects
+        if (window.location.pathname !== "/login/") {
+            window.location.href = "/login/";
+        }
+    } else {
+        console.log("Valid user detected:", userName);
+    }
+}
+
 // ✅ Store user's name and input method, then redirect accordingly
 function startConversation(userType) {
     let nameInput = document.getElementById("userName");
@@ -128,20 +143,7 @@ function notifyMainScreen(userName, userType, attempt = 1) {
     }
 }
 
-function checkIfMonitor() {
-    let userName = sessionStorage.getItem("userName");
 
-    if (!userName) {
-        console.log("Monitor detected, redirecting to login...");
-        
-        // ✅ Prevent continuous redirects
-        if (window.location.pathname !== "/login/") {
-            window.location.href = "/login/";
-        }
-    } else {
-        console.log("Valid user detected:", userName);
-    }
-}
 
 document.getElementById("qr-code-index")
 document.getElementById("qr-code-chatroom")
