@@ -376,6 +376,21 @@ function requestMicrophoneAndUpload() {
         });
 }
 
+function checkIfMonitor() {
+    let userName = sessionStorage.getItem("userName");
+
+    if (!userName) {
+        console.log("Monitor detected, redirecting to login...");
+        
+        // ✅ Prevent continuous redirects
+        if (window.location.pathname !== "/login/") {
+            window.location.href = "/login/";
+        }
+    } else {
+        console.log("Valid user detected:", userName);
+    }
+}
+
 // ✅ Send Audio to Django API (Whisper)
 function sendAudioToWhisper(audioBlob) {
     let formData = new FormData();
