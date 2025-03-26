@@ -128,6 +128,21 @@ function notifyMainScreen(userName, userType, attempt = 1) {
     }
 }
 
+function checkIfMonitor() {
+    let userName = sessionStorage.getItem("userName");
+
+    if (!userName) {
+        console.log("Monitor detected, redirecting to login...");
+        
+        // ✅ Prevent continuous redirects
+        if (window.location.pathname !== "/login/") {
+            window.location.href = "/login/";
+        }
+    } else {
+        console.log("Valid user detected:", userName);
+    }
+}
+
 document.getElementById("qr-code-index")
 document.getElementById("qr-code-chatroom")
 function generateQRCode() {
@@ -376,20 +391,7 @@ function requestMicrophoneAndUpload() {
         });
 }
 
-function checkIfMonitor() {
-    let userName = sessionStorage.getItem("userName");
 
-    if (!userName) {
-        console.log("Monitor detected, redirecting to login...");
-        
-        // ✅ Prevent continuous redirects
-        if (window.location.pathname !== "/login/") {
-            window.location.href = "/login/";
-        }
-    } else {
-        console.log("Valid user detected:", userName);
-    }
-}
 
 // ✅ Send Audio to Django API (Whisper)
 function sendAudioToWhisper(audioBlob) {
