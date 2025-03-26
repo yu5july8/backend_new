@@ -93,15 +93,38 @@ function startConversation(userType) {
     notifyMainScreen(userName, userType);
 }
 
-// ✅ Function to notify main screen that a user has joined
-function notifyMainScreen(userName, userType) {
-    if (socket.readyState === WebSocket.OPEN) {
-        let data = JSON.stringify({
+// // ✅ Function to notify main screen that a user has joined
+// function notifyMainScreen(userName, userType) {
+//     if (socket.readyState === WebSocket.OPEN) {
+//         let data = JSON.stringify({
+//             event: "user_joined",
+//             user: userName,
+//             user_type: userType
+//         });
+//         socket.send(data);
+//     }
+// }
+// ✅ Retry logic for notifying main screen
+function notifyMainScreen(userName, userType, attempt = 1) {
+    const MAX_ATTEMPTS = 5;
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        const data = JSON.stringify({
             event: "user_joined",
             user: userName,
             user_type: userType
         });
         socket.send(data);
+        console.log("✅ Notified main screen about login!");
+    } else {
+        if (attempt <= MAX_ATTEMPTS) {
+            console.log(`🔁 WebSocket not ready. Retrying in 1 second... (Attempt ${attempt})`);
+            setTimeout(() => {
+                notifyMainScreen(userName, userType, attempt + 1);
+            }, 1000);
+        } else {
+            console.error("❌ Failed to notify main screen after multiple attempts.");
+        }
     }
 }
 
@@ -147,30 +170,74 @@ function generateQRCode() {
 }
 
 // ✅ WebSocket Setup for Real-Time Chat
+// let socket;
+
+// function setupWebSocket() {
+//     console.log('listen');
+//     let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+//     let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
+    
+//     socket = new WebSocket(wsUrl);
+
+//     socket.onopen = function () {
+//         console.log("WebSocket connected successfully!");
+//     };
+
+//     socket.onmessage = function (event) {
+//         let data = JSON.parse(event.data);
+//         displayMessage(data.user, data.message, data.user_type);
+//     };
+
+//     socket.onerror = function (error) {
+//         console.error("WebSocket error:", error);
+//     };
+
+//     socket.onclose = function () {
+//         console.warn("WebSocket disconnected. Falling back to polling...");
+//         setInterval(fetchMessages, 3000); // Polling fallback every 3 seconds
+//     };
+// }
+
 let socket;
+let socketInitialized = false;
 
 function setupWebSocket() {
+    console.log('Initializing WebSocket...');
     let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
-    
+
     socket = new WebSocket(wsUrl);
 
     socket.onopen = function () {
-        console.log("WebSocket connected successfully!");
+        console.log("✅ WebSocket connected!");
+        socketInitialized = true;
     };
 
     socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
+
+        // ✅ Handle login event
+        if (data.event === "user_joined") {
+            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
+
+            if (window.location.pathname === "/") {
+                console.log("🖥️ Main monitor redirecting to chatroom...");
+                window.location.href = "/chatroom/";
+            }
+            return;
+        }
+
+        // ✅ Otherwise, treat as chat message
         displayMessage(data.user, data.message, data.user_type);
     };
 
     socket.onerror = function (error) {
-        console.error("WebSocket error:", error);
+        console.error("❌ WebSocket error:", error);
     };
 
     socket.onclose = function () {
-        console.warn("WebSocket disconnected. Falling back to polling...");
-        setInterval(fetchMessages, 3000); // Polling fallback every 3 seconds
+        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
+        setInterval(fetchMessages, 3000);
     };
 }
 
