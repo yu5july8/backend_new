@@ -258,6 +258,14 @@ function setupWebSocket() {
     };
 }
 
+let formData = new FormData();
+formData.append("audio", audioBlob, "recording.wav");
+
+fetch("/api/chat/speech_to_text_vosk/", {
+    method: "POST",
+    body: formData
+})
+
 function fetchMessages() {
     fetch("/api/chat/messages/")
         .then(response => response.json())

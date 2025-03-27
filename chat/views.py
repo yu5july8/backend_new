@@ -11,6 +11,10 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings  # ✅ Correct import
 from .models import User, Message, Conversation
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from vosk import Model, KaldiRecognizer
+import wave
 
 # Configure OpenAI API
 openai.api_key = settings.OPENAI_API_KEY
@@ -68,31 +72,42 @@ def get_messages(request):
     serializer = MessageSerializer(messages, many=True)
     return Response(serializer.data)
 
+MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
+model = Model(MODEL_PATH)
+
 @csrf_exempt
-@api_view(['POST'])
-def speech_to_text(request):
-    """Converts an uploaded audio file into text using OpenAI Whisper API."""
-    
-    if 'audio' not in request.FILES:
-        return JsonResponse({"error": "No audio file uploaded"}, status=400)
+def speech_to_text_vosk(request):
+    if request.method == "POST" and request.FILES.get("audio"):
+        audio_file = request.FILES["audio"]
 
-    audio_file = request.FILES['audio']
-    
-    # Save file temporarily
-    file_path = default_storage.save(f"uploads/{audio_file.name}", ContentFile(audio_file.read()))
+        with open("temp.wav", "wb+") as temp_file:
+            for chunk in audio_file.chunks():
+                temp_file.write(chunk)
 
-    try:
-        # OpenAI Whisper API Call
-        with open(default_storage.path(file_path), "rb") as audio:
-            response = openai.Audio.transcribe("whisper-1", audio)
+        wf = wave.open("temp.wav", "rb")
+        if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
+            return JsonResponse({"error": "Invalid audio format"}, status=400)
 
-        # Clean up: Delete the temp file
-        default_storage.delete(file_path)
+        rec = KaldiRecognizer(model, wf.getframerate())
 
-        return JsonResponse({"text": response.get("text", "")})
+        result = ""
+        while True:
+            data = wf.readframes(4000)
+            if len(data) == 0:
+                break
+            if rec.AcceptWaveform(data):
+                res = json.loads(rec.Result())
+                result += res.get("text", "") + " "
 
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        res = json.loads(rec.FinalResult())
+        result += res.get("text", "")
+
+        wf.close()
+        os.remove("temp.wav")
+
+        return JsonResponse({"text": result.strip()})
+
+    return JsonResponse({"error": "No audio uploaded"}, status=400)
 
 @csrf_exempt
 @csrf_exempt
