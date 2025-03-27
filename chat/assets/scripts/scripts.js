@@ -332,75 +332,67 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-let recognition;
 let mediaRecorder;
 let audioChunks = [];
-// ✅ Declare global recognition instance
 
-if ("webkitSpeechRecognition" in window) {
-    recognition = new webkitSpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+function setupHoldToSpeakButton() {
+    const button = document.getElementById("speak-button");
 
-    recognition.onresult = function (event) {
-        let transcript = event.results[0][0].transcript;
-        console.log("Recognized Speech:", transcript);
-        sendMessage(transcript, "hearing-user"); // ✅ Send recognized speech to chat
-    };
+    if (!button) return;
 
-    recognition.onerror = function (event) {
-        console.error("Speech recognition error:", event.error);
-    };
-
-    recognition.onend = function () {
-        console.log("Speech recognition ended.");
-    };
-} else {
-    console.warn("Browser does not support Speech Recognition.");
+    button.addEventListener("pointerdown", startSpeaking);
+    button.addEventListener("pointerup", stopSpeaking);
+    button.addEventListener("pointerleave", stopSpeaking);  // Stop if finger/mouse leaves button
 }
 
-// ✅ Start Speaking
 function startSpeaking() {
-    if (!recognition) {
-        alert("Speech recognition is not supported in this browser.");
-        return;
-    }
+    console.log("Recording started...");
 
-    console.log("Starting speech recognition...");
-    recognition.start();
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+            sendAudioToWhisper(audioBlob);
+        };
+
+        mediaRecorder.start();
+    }).catch(error => {
+        console.error("Microphone access denied:", error);
+        alert("Microphone access is required to speak.");
+    });
 }
 
-// ✅ Stop Speaking
 function stopSpeaking() {
-    if (!recognition) return;
-    console.log("Stopping speech recognition...");
-    recognition.stop();
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        console.log("Recording stopped.");
+        mediaRecorder.stop();
+    }
 }
 
-// ✅ Function to request microphone & upload to AI speech-to-text API
-function requestMicrophoneAndUpload() {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
+function sendAudioToWhisper(audioBlob) {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.wav");
 
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                let audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                sendAudioToWhisper(audioBlob);
-            };
-
-            mediaRecorder.start();
+    fetch("/api/chat/speech_to_text/", {
+        method: "POST",
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.text) {
+                sendMessage(data.text, "hearing-user");
+            } else {
+                console.error("Speech-to-text error:", data.error);
+            }
         })
-        .catch(error => {
-            console.error("Microphone access denied:", error);
-            alert("Microphone access is required for speech input.");
-        });
+        .catch(error => console.error("Failed to send audio:", error));
 }
-
 
 
 // ✅ Send Audio to Django API (Whisper)
