@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
-from .views import register_user, send_message, get_messages, speech_to_text
+from .views import register_user, send_message, get_messages, speech_to_text_vosk
 from .views import save_message
 from . import views
 
@@ -9,7 +9,7 @@ urlpatterns = [
     path("api/chat/register/", register_user),
     path("api/chat/send/", send_message),
     path("api/chat/messages/", get_messages),
-    path("api/chat/speech_to_text/", speech_to_text),  # ✅ Added Speech-to-Text Endpoint
+    path("api/chat/speech_to_text/", speech_to_text_vosk),  # ✅ Added Speech-to-Text Endpoint
 
     # ✅ Frontend Pages
     path("admin/", admin.site.urls),
