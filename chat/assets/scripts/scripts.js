@@ -108,17 +108,6 @@ function startConversation(userType) {
     notifyMainScreen(userName, userType);
 }
 
-// // ✅ Function to notify main screen that a user has joined
-// function notifyMainScreen(userName, userType) {
-//     if (socket.readyState === WebSocket.OPEN) {
-//         let data = JSON.stringify({
-//             event: "user_joined",
-//             user: userName,
-//             user_type: userType
-//         });
-//         socket.send(data);
-//     }
-// }
 // ✅ Retry logic for notifying main screen
 function notifyMainScreen(userName, userType, attempt = 1) {
     const MAX_ATTEMPTS = 5;
@@ -185,35 +174,7 @@ function generateQRCode() {
         console.error("QR container not found!");
     }
 }
-
-// ✅ WebSocket Setup for Real-Time Chat
-// let socket;
-
-// function setupWebSocket() {
-//     console.log('listen');
-//     let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-//     let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
-    
-//     socket = new WebSocket(wsUrl);
-
-//     socket.onopen = function () {
-//         console.log("WebSocket connected successfully!");
-//     };
-
-//     socket.onmessage = function (event) {
-//         let data = JSON.parse(event.data);
-//         displayMessage(data.user, data.message, data.user_type);
-//     };
-
-//     socket.onerror = function (error) {
-//         console.error("WebSocket error:", error);
-//     };
-
-//     socket.onclose = function () {
-//         console.warn("WebSocket disconnected. Falling back to polling...");
-//         setInterval(fetchMessages, 3000); // Polling fallback every 3 seconds
-//     };
-// }
+// ✅ WebSocket Initialization
 
 let socket;
 let socketInitialized = false;
@@ -274,7 +235,9 @@ function fetchMessages() {
             chatDisplay.innerHTML = "";  // Clear existing messages
 
             messages.forEach(msg => {
-                displayMessage(msg.user, msg.text, msg.user_type);
+                if (msg.user && msg.message) {
+                    displayMessage(msg.user, msg.message, msg.user_type);
+                }
             });
 
             chatDisplay.scrollTop = chatDisplay.scrollHeight;
