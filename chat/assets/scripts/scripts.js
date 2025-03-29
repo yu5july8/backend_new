@@ -338,7 +338,7 @@ function stopSpeaking() {
     }
 }
 
-function sendAudioToWhisper(audioBlob) {
+function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
 
@@ -346,36 +346,15 @@ function sendAudioToWhisper(audioBlob) {
         method: "POST",
         body: formData,
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.text) {
-                sendMessage(data.text, "hearing-user");
-            } else {
-                console.error("Speech-to-text error:", data.error);
-            }
-        })
-        .catch(error => console.error("Failed to send audio:", error));
-}
-
-
-// ✅ Send Audio to Django API (Whisper)
-function sendAudioToWhisper(audioBlob) {
-    let formData = new FormData();
-    formData.append("audio", audioBlob, "recording.wav");
-
-    fetch("/api/chat/speech_to_text/", {
-        method: "POST",
-        body: formData
-    })
     .then(response => response.json())
     .then(data => {
         if (data.text) {
-            sendMessage(data.text, "hearing-user"); // ✅ Send recognized text as a message
+            sendMessage(data.text, "hearing-user");
         } else {
-            console.error("Error from API:", data.error);
+            console.error("Speech-to-text error:", data.error);
         }
     })
-    .catch(error => console.error("Error sending audio:", error));
+    .catch(error => console.error("Failed to send audio:", error));
 }
 
 
