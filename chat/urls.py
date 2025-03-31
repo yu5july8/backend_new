@@ -9,7 +9,7 @@ urlpatterns = [
     path("api/chat/register/", register_user),
     path("api/chat/send/", send_message),
     path("api/chat/messages/", get_messages),
-    path("api/chat/speech_to_text/", speech_to_text_vosk),  # ✅ Added Speech-to-Text Endpoint
+    path("speech_to_text/", speech_to_text_vosk, name="speech_to_text_vosk"),
 
     # ✅ Frontend Pages
     path("admin/", admin.site.urls),
