@@ -25,7 +25,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "sk-proj-lhBRC1gCaZAOJaMx82K14BFlMm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ASGI_APPLICATION = "backend.asgi.application"
+ASGI_APPLICATION = "backend_new.asgi.application"
 
 # Allowed Hosts
 # ALLOWED_HOSTS = ["your-app-name.onrender.com"]
@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'chat',  # ✅ Your chat app
     'rest_framework',  # ✅ Ensure this is present
     'corsheaders',  # ✅ If you're using CORS
-    "channels"
+    'channels',
     
 ]
 
