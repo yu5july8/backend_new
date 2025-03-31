@@ -74,7 +74,6 @@ function checkIfMonitor() {
     }
 }
 
-// ✅ Store user's name and input method, then redirect accordingly
 function startConversation(userType) {
     let nameInput = document.getElementById("userName");
     let userName = nameInput ? nameInput.value.trim() : "";
@@ -90,28 +89,29 @@ function startConversation(userType) {
 
     console.log("Logging in:", userName, "as", userType);
 
-    // ✅ Redirect mobile users to the correct page
+    // ✅ Notify the main screen **before** redirecting
+    notifyMainScreen(userName, userType);
+
+    // ✅ Redirect accordingly
     if (isMobileDevice()) {
         if (userType === "hearing-user") {
             console.log("Redirecting to speaking page...");
-            window.location.href = "/speaking/";
+            setTimeout(() => {
+                window.location.href = "/speaking/";
+            }, 300); // Delay helps ensure socket message is sent
         } else {
             console.log("Redirecting to typing page...");
-            window.location.href = "/typing/";
+            setTimeout(() => {
+                window.location.href = "/typing/";
+            }, 300);
         }
     } else {
         console.log("Main monitor detected.");
-        sessionStorage.setItem("monitorLoggedIn", "true"); // ✅ Track that the main screen is in use
+        sessionStorage.setItem("monitorLoggedIn", "true");
     }
-
-    // ✅ Notify the main screen to update
-    notifyMainScreen(userName, userType);
 }
 
-// ✅ Retry logic for notifying main screen
-function notifyMainScreen(userName, userType, attempt = 1) {
-    const MAX_ATTEMPTS = 5;
-
+function notifyMainScreen(userName, userType, retries = 5) {
     if (socket && socket.readyState === WebSocket.OPEN) {
         const data = JSON.stringify({
             event: "user_joined",
@@ -119,16 +119,14 @@ function notifyMainScreen(userName, userType, attempt = 1) {
             user_type: userType
         });
         socket.send(data);
-        console.log("✅ Notified main screen about login!");
+        console.log("✅ Notified monitor of user join.");
+    } else if (retries > 0) {
+        console.log("⏳ Waiting for WebSocket to open...");
+        setTimeout(() => {
+            notifyMainScreen(userName, userType, retries - 1);
+        }, 500);
     } else {
-        if (attempt <= MAX_ATTEMPTS) {
-            console.log(`🔁 WebSocket not ready. Retrying in 1 second... (Attempt ${attempt})`);
-            setTimeout(() => {
-                notifyMainScreen(userName, userType, attempt + 1);
-            }, 1000);
-        } else {
-            console.error("❌ Failed to notify main screen after multiple attempts.");
-        }
+        console.warn("❌ Could not notify monitor. WebSocket never connected.");
     }
 }
 
