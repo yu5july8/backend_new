@@ -226,63 +226,80 @@ function setupWebSocket() {
     };
 }
 
-let formData = new FormData();
-formData.append("audio", audioBlob, "recording.wav");
+// ✅ Declare variables globally once
+let mediaRecorder = null;
+let audioChunks = [];
 
-fetch("/api/chat/speech_to_text_vosk/", {
-    method: "POST",
-    body: formData
-})
+// ✅ Start recording on press
+function startSpeaking() {
+    console.log("🎙️ Recording started...");
 
-function fetchMessages() {
-    fetch("/api/chat/messages/")
-        .then(response => response.json())
-        .then(messages => {
-            let chatDisplay = document.getElementById("chat_display");
-            chatDisplay.innerHTML = "";  // Clear existing messages
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
 
-            messages.forEach(msg => {
-                if (msg.user && msg.message) {
-                    displayMessage(msg.user, msg.message, msg.user_type);
-                }
-            });
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
 
-            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                sendAudioToVosk(audioBlob);
+            };
+
+            mediaRecorder.start();
         })
-        .catch(error => console.error("Error fetching messages:", error));
+        .catch(err => {
+            console.error("Microphone error:", err);
+            alert("Microphone access denied.");
+        });
 }
 
-// ✅ Display Message in Chatroom
-function displayMessage(user, message, userType) {
-    let chatDisplay = document.getElementById("chat_display");
-    let messageElement = document.createElement("p");
-    messageElement.textContent = `${user}: ${message}`;
-    messageElement.style.color = userType === "hearing-user" ? "blue" : "green";
-    messageElement.style.fontWeight = "bold";
-
-    chatDisplay.appendChild(messageElement);
-    chatDisplay.scrollTop = chatDisplay.scrollHeight;
-}
-
-// ✅ Request Microphone Access
-function requestMicrophonePermission() {
-    if (!("webkitSpeechRecognition" in window)) {
-        alert("Your browser does not support speech recognition.");
-        return;
+// ✅ Stop recording on release
+function stopSpeaking() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        console.log("🛑 Recording stopped.");
+        mediaRecorder.stop();
     }
-
-    let testRecognition = new webkitSpeechRecognition();
-    testRecognition.start();
-    testRecognition.onend = function () {
-        console.log("Microphone permission granted.");
-    };
-    testRecognition.onerror = function (event) {
-        if (event.error === "not-allowed") {
-            alert("Microphone access is required for speech input. Please enable it in your browser settings.");
-        }
-    };
 }
 
+// ✅ Send audio to backend for Vosk STT
+function sendAudioToVosk(audioBlob) {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.wav");
+
+    fetch("/api/chat/speech_to_text_vosk/", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.text) {
+            const userName = sessionStorage.getItem("userName");
+            const userType = sessionStorage.getItem("userType");
+            sendMessage(data.text, userType, userName);
+        } else {
+            console.error("Error:", data.error);
+        }
+    })
+    .catch(error => console.error("Fetch error:", error));
+}
+
+// ✅ Send message over WebSocket
+function sendMessage(text, userType, userName) {
+    const messageData = {
+        user: userName,
+        message: text,
+        user_type: userType
+    };
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(messageData));
+    } else {
+        console.error("WebSocket is not connected.");
+    }
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     let reactions = {
@@ -302,8 +319,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-let mediaRecorder;
-let audioChunks = [];
 
 function setupHoldToSpeakButton() {
     const button = document.getElementById("speak-button");
@@ -386,3 +401,10 @@ function sendMessage(message, userType) {
         body: JSON.stringify(data)
     });
 }
+
+socket.onmessage = function (event) {
+    const data = JSON.parse(event.data);
+    if (data.user && data.message) {
+        displayMessage(data.user, data.message, data.user_type);
+    }
+};
