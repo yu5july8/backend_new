@@ -19,6 +19,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setupWebSocket();
     generateQRCode();
+
+    const exitBtn = document.getElementById("exit-button");
+
+    if (exitBtn) {
+        exitBtn.addEventListener("click", function () {
+            console.log("🚪 Exit button clicked. Redirecting...");
+            window.location.href = "/exit/"; // Make sure this matches your Django URL
+        });
+    }
 });
 
 function checkIfLoggedIn() {
