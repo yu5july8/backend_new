@@ -244,8 +244,9 @@ function startSpeaking() {
             };
 
             mediaRecorder.onstop = () => {
+                // ✅ audioBlob is defined here after stop
                 const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                sendAudioToVosk(audioBlob);
+                sendAudioToVosk(audioBlob);  // ✅ Call function *after* we have the blob
             };
 
             mediaRecorder.start();
@@ -330,35 +331,6 @@ function setupHoldToSpeakButton() {
     button.addEventListener("pointerleave", stopSpeaking);  // Stop if finger/mouse leaves button
 }
 
-function startSpeaking() {
-    console.log("Recording started...");
-
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-            sendAudioToWhisper(audioBlob);
-        };
-
-        mediaRecorder.start();
-    }).catch(error => {
-        console.error("Microphone access denied:", error);
-        alert("Microphone access is required to speak.");
-    });
-}
-
-function stopSpeaking() {
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-        console.log("Recording stopped.");
-        mediaRecorder.stop();
-    }
-}
 
 function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
