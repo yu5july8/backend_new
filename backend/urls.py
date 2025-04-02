@@ -27,5 +27,5 @@ urlpatterns = [
     path("chatroom/", views.chatroom, name="chatroom"),  # ✅ Chatroom (Main Monitor)
     path("typing/", views.typing, name="typing"),  # ✅ Typing page
     path("speaking/", views.speaking, name="speaking"),  # ✅ Speaking page
-    path("exit/", views.exit_page, name="exit"),
+    path("exit/", views.exit, name="exit"),
 ]
