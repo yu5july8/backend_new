@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
     generateQRCode();
 });
 
-// ✅ Ensure chatroom opens ONLY after login
 function checkIfLoggedIn() {
     let nameInput = document.getElementById("userName");
     let userName = nameInput ? nameInput.value.trim() : "";
@@ -32,7 +31,6 @@ function checkIfLoggedIn() {
         console.log("User detected:", userName, "as", userType);
 
         if (isMobileDevice()) {
-            // ✅ If user is on the login page and has selected an input method, redirect them
             if (window.location.pathname === "/login/") {
                 if (userType === "hearing-user") {
                     console.log("Redirecting to speaking page...");
@@ -43,14 +41,21 @@ function checkIfLoggedIn() {
                 }
             }
         } else {
-            // ✅ Ensure main monitor moves to chatroom when a user logs in
             if (window.location.pathname === "/") {
                 console.log("Main monitor detected, moving to chatroom...");
                 window.location.href = "/chatroom/";
             }
         }
     } else {
-        console.log("No logged-in user detected.");
+        // 👇 Ignore missing sessionStorage on main monitor
+        if (isMobileDevice()) {
+            console.log("Mobile user not logged in, redirecting to login...");
+            if (window.location.pathname !== "/login/") {
+                window.location.href = "/login/";
+            }
+        } else {
+            console.log("Main monitor — no user session but that's okay.");
+        }
     }
 }
 
@@ -60,17 +65,15 @@ function isMobileDevice() {
 }
 
 function checkIfMonitor() {
+    if (isMobileDevice()) return; // Skip check on mobile
+
     let userName = sessionStorage.getItem("userName");
 
-    if (!userName) {
-        console.log("Monitor detected, redirecting to login...");
-        
-        // ✅ Prevent continuous redirects
-        if (window.location.pathname !== "/login/") {
-            window.location.href = "/login/";
-        }
+    if (!userName && window.location.pathname !== "/login/") {
+        console.log("Monitor — no session data, but staying put.");
+        // We don’t redirect to login, just stay idle and wait for WebSocket to notify.
     } else {
-        console.log("Valid user detected:", userName);
+        console.log("Valid user session on monitor:", userName);
     }
 }
 
