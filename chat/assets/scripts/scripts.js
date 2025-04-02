@@ -1,4 +1,3 @@
-// Ensure DOM is fully loaded before running any scripts
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM loaded. Running initialization functions...");
 
@@ -12,9 +11,10 @@ document.addEventListener("DOMContentLoaded", function () {
         generateQRCode();
     }
 
-    if (window.location.pathname !== "/") {
-        checkIfLoggedIn();
-        checkIfMonitor();
+    if (window.location.pathname === "/") {
+        checkIfMonitor();  // ✅ Only run on main monitor
+    } else {
+        checkIfLoggedIn();  // ✅ Run on speaking/typing/mobile pages
     }
 
     setupWebSocket(); // ✅ Enable WebSocket connection
