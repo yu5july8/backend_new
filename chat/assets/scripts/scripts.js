@@ -287,20 +287,6 @@ function sendAudioToVosk(audioBlob) {
     .catch(error => console.error("Fetch error:", error));
 }
 
-// ✅ Send message over WebSocket
-function sendMessage(text, userType, userName) {
-    const messageData = {
-        user: userName,
-        message: text,
-        user_type: userType
-    };
-
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(messageData));
-    } else {
-        console.error("WebSocket is not connected.");
-    }
-}
 
 document.addEventListener("DOMContentLoaded", function () {
     let reactions = {
@@ -321,36 +307,43 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-function setupHoldToSpeakButton() {
-    const button = document.getElementById("speak-button");
+function sendReaction(reaction) {
+    const userName = sessionStorage.getItem("userName");
+    const userType = sessionStorage.getItem("userType");
 
-    if (!button) return;
-
-    button.addEventListener("pointerdown", startSpeaking);
-    button.addEventListener("pointerup", stopSpeaking);
-    button.addEventListener("pointerleave", stopSpeaking);  // Stop if finger/mouse leaves button
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            user: userName,
+            message: reaction,
+            user_type: userType
+        }));
+    } else {
+        console.error("WebSocket is not connected.");
+    }
 }
 
+function typingSentence() {
+    const inputBox = document.getElementById("type_chat_box");
+    const message = inputBox.value.trim();
+    const userName = sessionStorage.getItem("userName");
+    const userType = sessionStorage.getItem("userType");
 
-function sendAudioToVosk(audioBlob) {
-    const formData = new FormData();
-    formData.append("audio", audioBlob, "recording.wav");
+    if (!message) return;
 
-    fetch("/api/chat/speech_to_text/", {
-        method: "POST",
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.text) {
-            sendMessage(data.text, "hearing-user");
-        } else {
-            console.error("Speech-to-text error:", data.error);
-        }
-    })
-    .catch(error => console.error("Failed to send audio:", error));
+    // ✅ Send message via WebSocket
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            event: "message",
+            user: userName,
+            message: message,
+            user_type: userType,
+        }));
+
+        inputBox.value = "";  // Clear the input field
+    } else {
+        console.error("❌ WebSocket is not open!");
+    }
 }
-
 
 function sendMessage(message, userType) {
     let userName = sessionStorage.getItem("userName") || (userType === "hearing-user" ? "Hearing User" : "DHH User");
