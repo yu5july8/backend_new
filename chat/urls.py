@@ -21,5 +21,5 @@ urlpatterns = [
     path("messages/", get_messages, name="get_messages"),  # ✅ Ensure API route exists
     path("send/", send_message, name="send_message"),
     path("save/", save_message),
-    path("exit/", views.exit_page, name="exit"),
+    path("exit/", views.exit, name="exit"),
 ]
