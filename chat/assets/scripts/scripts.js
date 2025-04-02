@@ -30,6 +30,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+
+let socket;
+let socketInitialized = false;
+
+function setupWebSocket() {
+    console.log('Initializing WebSocket...');
+    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
+
+    socket = new WebSocket(wsUrl);
+
+    socket.onopen = function () {
+        console.log("✅ WebSocket connected!");
+        socketInitialized = true;
+    };
+
+    socket.onmessage = function (event) {
+        let data = JSON.parse(event.data);
+
+        // ✅ Handle login event
+        if (data.event === "user_joined") {
+            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
+
+            if (window.location.pathname === "/") {
+                console.log("🖥️ Main monitor redirecting to chatroom...");
+                window.location.href = "/chatroom/";
+            }
+            return;
+        }
+
+        // ✅ Otherwise, treat as chat message
+        displayMessage(data.user, data.message, data.user_type);
+    };
+
+    socket.onerror = function (error) {
+        console.error("❌ WebSocket error:", error);
+    };
+
+    socket.onclose = function () {
+        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
+        setInterval(fetchMessages, 3000);
+    };
+}
+
+
 function checkIfLoggedIn() {
     let nameInput = document.getElementById("userName");
     let userName = nameInput ? nameInput.value.trim() : "";
@@ -120,22 +165,26 @@ function startConversation(userType) {
     }
 }
 
-function notifyMainScreen(userName, userType, retries = 5) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        const data = JSON.stringify({
+function notifyMainScreen(userName, userType) {
+    function sendMessage() {
+        socket.send(JSON.stringify({
             event: "user_joined",
             user: userName,
             user_type: userType
-        });
-        socket.send(data);
-        console.log("✅ Notified monitor of user join.");
-    } else if (retries > 0) {
-        console.log("⏳ Waiting for WebSocket to open...");
-        setTimeout(() => {
-            notifyMainScreen(userName, userType, retries - 1);
-        }, 500);
+        }));
+        console.log("✅ Notified monitor of user join:", userName);
+    }
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        sendMessage();
     } else {
-        console.warn("❌ Could not notify monitor. WebSocket never connected.");
+        console.warn("⏳ Waiting for WebSocket to open...");
+        const interval = setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) {
+                clearInterval(interval);
+                sendMessage();
+            }
+        }, 100); // Check every 100ms
     }
 }
 
@@ -183,48 +232,7 @@ function generateQRCode() {
 }
 // ✅ WebSocket Initialization
 
-let socket;
-let socketInitialized = false;
 
-function setupWebSocket() {
-    console.log('Initializing WebSocket...');
-    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
-
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = function () {
-        console.log("✅ WebSocket connected!");
-        socketInitialized = true;
-    };
-
-    socket.onmessage = function (event) {
-        let data = JSON.parse(event.data);
-
-        // ✅ Handle login event
-        if (data.event === "user_joined") {
-            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
-
-            if (window.location.pathname === "/") {
-                console.log("🖥️ Main monitor redirecting to chatroom...");
-                window.location.href = "/chatroom/";
-            }
-            return;
-        }
-
-        // ✅ Otherwise, treat as chat message
-        displayMessage(data.user, data.message, data.user_type);
-    };
-
-    socket.onerror = function (error) {
-        console.error("❌ WebSocket error:", error);
-    };
-
-    socket.onclose = function () {
-        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
-        setInterval(fetchMessages, 3000);
-    };
-}
 
 // ✅ Declare variables globally once
 let mediaRecorder = null;
