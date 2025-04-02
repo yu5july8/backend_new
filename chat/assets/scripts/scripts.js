@@ -12,13 +12,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (window.location.pathname === "/") {
-        checkIfMonitor();  // ✅ Only run on main monitor
+        checkIfMonitor(); // ✅ Only main monitor
     } else {
-        checkIfLoggedIn();  // ✅ Run on speaking/typing/mobile pages
+        checkIfLoggedIn(); // ✅ Everyone else
     }
 
-    setupWebSocket(); // ✅ Enable WebSocket connection
-    console.log("DOM fully loaded. Running QR Code generator...");
+    setupWebSocket();
     generateQRCode();
 });
 
@@ -27,35 +26,33 @@ function checkIfLoggedIn() {
     let userName = nameInput ? nameInput.value.trim() : "";
     let userType = sessionStorage.getItem("userType");
 
+    if (!userName) {
+        userName = sessionStorage.getItem("userName");
+    }
+
     if (userName && userType) {
-        console.log("User detected:", userName, "as", userType);
+        console.log("✅ Logged-in user:", userName, "as", userType);
 
         if (isMobileDevice()) {
-            if (window.location.pathname === "/login/") {
+            if (
+                window.location.pathname === "/login/" ||
+                window.location.pathname === "/"
+            ) {
+                // ✅ Only redirect from login page (or root)
                 if (userType === "hearing-user") {
-                    console.log("Redirecting to speaking page...");
                     window.location.href = "/speaking/";
                 } else if (userType === "dhh-user") {
-                    console.log("Redirecting to typing page...");
                     window.location.href = "/typing/";
                 }
             }
         } else {
+            // 🖥️ Main monitor
             if (window.location.pathname === "/") {
-                console.log("Main monitor detected, moving to chatroom...");
                 window.location.href = "/chatroom/";
             }
         }
     } else {
-        // 👇 Ignore missing sessionStorage on main monitor
-        if (isMobileDevice()) {
-            console.log("Mobile user not logged in, redirecting to login...");
-            if (window.location.pathname !== "/login/") {
-                window.location.href = "/login/";
-            }
-        } else {
-            console.log("Main monitor — no user session but that's okay.");
-        }
+        console.log("❌ No logged-in user detected.");
     }
 }
 
@@ -65,15 +62,15 @@ function isMobileDevice() {
 }
 
 function checkIfMonitor() {
-    if (isMobileDevice()) return; // Skip check on mobile
+    if (isMobileDevice()) return; // ✅ Skip this entirely on mobile
 
     let userName = sessionStorage.getItem("userName");
 
     if (!userName && window.location.pathname !== "/login/") {
-        console.log("Monitor — no session data, but staying put.");
-        // We don’t redirect to login, just stay idle and wait for WebSocket to notify.
+        console.log("🖥️ Monitor: No session yet. Staying idle on /");
+        // Don't redirect — just idle
     } else {
-        console.log("Valid user session on monitor:", userName);
+        console.log("🖥️ Monitor: Valid session found:", userName);
     }
 }
 
