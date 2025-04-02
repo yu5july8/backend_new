@@ -367,8 +367,27 @@ function sendMessage(message, userType) {
     });
 }
 
+// ✅ Define this first
+function displayMessage(user, message, userType) {
+    let chatDisplay = document.getElementById("chat_display");
+    let messageElement = document.createElement("p");
+    messageElement.textContent = `${user}: ${message}`;
+    messageElement.style.color = userType === "hearing-user" ? "blue" : "green";
+    messageElement.style.fontWeight = "bold";
+    
+    chatDisplay.appendChild(messageElement);
+    chatDisplay.scrollTop = chatDisplay.scrollHeight;
+}
+
+
 socket.onmessage = function (event) {
     const data = JSON.parse(event.data);
+
+    if (data.event === "user_joined") {
+        console.log(`📲 ${data.user} (${data.user_type}) joined the chat.`);
+        return;
+    }
+
     if (data.user && data.message) {
         displayMessage(data.user, data.message, data.user_type);
     }
