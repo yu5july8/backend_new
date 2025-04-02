@@ -31,48 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-let socket;
-let socketInitialized = false;
 
-function setupWebSocket() {
-    console.log('Initializing WebSocket...');
-    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
-
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = function () {
-        console.log("✅ WebSocket connected!");
-        socketInitialized = true;
-    };
-
-    socket.onmessage = function (event) {
-        let data = JSON.parse(event.data);
-
-        // ✅ Handle login event
-        if (data.event === "user_joined") {
-            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
-
-            if (window.location.pathname === "/") {
-                console.log("🖥️ Main monitor redirecting to chatroom...");
-                window.location.href = "/chatroom/";
-            }
-            return;
-        }
-
-        // ✅ Otherwise, treat as chat message
-        displayMessage(data.user, data.message, data.user_type);
-    };
-
-    socket.onerror = function (error) {
-        console.error("❌ WebSocket error:", error);
-    };
-
-    socket.onclose = function () {
-        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
-        setInterval(fetchMessages, 3000);
-    };
-}
+// ✅ Check if user is logged in
 
 
 function checkIfLoggedIn() {
@@ -230,9 +190,65 @@ function generateQRCode() {
         console.error("QR container not found!");
     }
 }
-// ✅ WebSocket Initialization
 
 
+let socket;
+let socketInitialized = false;
+
+function setupWebSocket() {
+    console.log('Initializing WebSocket...');
+    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
+
+    socket = new WebSocket(wsUrl);
+
+    socket.onopen = function () {
+        console.log("✅ WebSocket connected!");
+        socketInitialized = true;
+    };
+
+    socket.onmessage = function (event) {
+        let data = JSON.parse(event.data);
+
+        // ✅ Handle login event
+        if (data.event === "user_joined") {
+            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
+
+            if (window.location.pathname === "/") {
+                console.log("🖥️ Main monitor redirecting to chatroom...");
+                window.location.href = "/chatroom/";
+            }
+            return;
+        }
+
+        // ✅ Otherwise, treat as chat message
+        displayMessage(data.user, data.message, data.user_type);
+    };
+
+    socket.onerror = function (error) {
+        console.error("❌ WebSocket error:", error);
+    };
+
+    socket.onclose = function () {
+        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
+        setInterval(fetchMessages, 3000);
+    };
+}
+
+function fetchMessages() {
+    fetch("/api/chat/messages/")
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    displayMessage(msg.user, msg.message, msg.user_type);
+                });
+            } else {
+                console.error("❌ Error fetching messages:", data.error);
+            }
+        })
+        .catch(error => console.error("❌ Fetch error:", error));
+}
 
 // ✅ Declare variables globally once
 let mediaRecorder = null;
