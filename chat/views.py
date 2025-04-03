@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from vosk import Model, KaldiRecognizer
 import wave
+import io
 
 # Configure OpenAI API
 openai.api_key = settings.OPENAI_API_KEY
