@@ -322,7 +322,7 @@ function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
 
-    fetch("/api/chat/speech_to_text_vosk/", {
+    fetch("/api/chat/vosk_model/", {
         method: "POST",
         body: formData
     })

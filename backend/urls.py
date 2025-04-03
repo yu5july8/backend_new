@@ -28,4 +28,5 @@ urlpatterns = [
     path("typing/", views.typing, name="typing"),  # ✅ Typing page
     path("speaking/", views.speaking, name="speaking"),  # ✅ Speaking page
     path("exit/", views.exit, name="exit"),
+    
 ]

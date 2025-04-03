@@ -21,5 +21,6 @@ urlpatterns = [
     path("messages/", get_messages, name="get_messages"),  # ✅ Ensure API route exists
     path("send/", send_message, name="send_message"),
     path("save/", save_message),
+    path("vosk_model/", views.speech_to_text_vosk, name="speech_to_text_vosk"),
     path("exit/", views.exit, name="exit"),
 ]
