@@ -97,31 +97,34 @@ function startConversation(userType) {
         return;
     }
 
-    // ✅ Store login details
     sessionStorage.setItem("userName", userName);
     sessionStorage.setItem("userType", userType);
 
     console.log("Logging in:", userName, "as", userType);
 
-    // ✅ Notify the main screen **before** redirecting
-    notifyMainScreen(userName, userType);
+    // ✅ Delay redirect until WebSocket is confirmed connected
+    function proceedAfterSocketReady() {
+        notifyMainScreen(userName, userType);
 
-    // ✅ Redirect accordingly
-    if (isMobileDevice()) {
-        if (userType === "hearing-user") {
-            console.log("Redirecting to speaking page...");
-            setTimeout(() => {
-                window.location.href = "/speaking/";
-            }, 300); // Delay helps ensure socket message is sent
+        if (isMobileDevice()) {
+            const target = userType === "hearing-user" ? "/speaking/" : "/typing/";
+            console.log("Redirecting to:", target);
+            window.location.href = target;
         } else {
-            console.log("Redirecting to typing page...");
-            setTimeout(() => {
-                window.location.href = "/typing/";
-            }, 300);
+            sessionStorage.setItem("monitorLoggedIn", "true");
+            console.log("Main monitor session stored.");
         }
+    }
+
+    // ✅ Wait until socket is ready before proceeding
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        proceedAfterSocketReady();
     } else {
-        console.log("Main monitor detected.");
-        sessionStorage.setItem("monitorLoggedIn", "true");
+        console.warn("WebSocket not open yet. Waiting...");
+        socket.addEventListener("open", () => {
+            console.log("WebSocket now open. Proceeding...");
+            proceedAfterSocketReady();
+        });
     }
 }
 
@@ -139,10 +142,14 @@ function notifyMainScreen(userName, userType) {
         sendMessage();
     } else {
         console.warn("⏳ Waiting for WebSocket to open...");
+        let retryCount = 0;
         const interval = setInterval(() => {
             if (socket.readyState === WebSocket.OPEN) {
                 clearInterval(interval);
                 sendMessage();
+            } else if (++retryCount > 50) {  // e.g. 5 seconds max
+                clearInterval(interval);
+                console.error("❌ WebSocket connection failed. Monitor not notified.");
             }
         }, 100); // Check every 100ms
     }
