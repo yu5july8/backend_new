@@ -259,22 +259,22 @@ function generateQRCode() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const speakBtn = document.getElementById("speak-button");
-    
+
     if (speakBtn) {
         // Desktop
         speakBtn.addEventListener("mousedown", startSpeaking);
         speakBtn.addEventListener("mouseup", stopSpeaking);
-        
+        speakBtn.addEventListener("mouseleave", stopSpeaking); // In case finger moves off
+
         // Mobile
         speakBtn.addEventListener("touchstart", function (e) {
-            e.preventDefault();  // ← This helps prevent conflict
+            e.preventDefault(); // 👈 prevent long-press menu
             startSpeaking();
-        }, { passive: false });
-
+        });
         speakBtn.addEventListener("touchend", function (e) {
             e.preventDefault();
             stopSpeaking();
-        }, { passive: false });
+        });
     }
 });
 
@@ -285,6 +285,17 @@ let audioChunks = [];
 
 // 🎤 Called when the mic button is pressed
 function startSpeaking() {
+    console.log("🎙️ Attempting to start recording");
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            console.log("🎙️ Microphone access granted.");
+            ...
+        })
+        .catch(err => {
+            console.error("❌ Mic access failed:", err);
+            alert("Microphone access is required. Please enable it in your browser.");
+        });
     console.log("🎙️ Recording started...");
 
     navigator.mediaDevices.getUserMedia({ audio: true })
