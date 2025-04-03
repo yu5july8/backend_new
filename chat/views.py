@@ -75,39 +75,44 @@ def get_messages(request):
 MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
 model = Model(MODEL_PATH)
 
+# Load model
+MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
+model = Model(MODEL_PATH)
+
 @csrf_exempt
 def speech_to_text_vosk(request):
     if request.method == "POST" and request.FILES.get("audio"):
         audio_file = request.FILES["audio"]
+        audio_bytes = audio_file.read()
 
-        with open("temp.wav", "wb+") as temp_file:
-            for chunk in audio_file.chunks():
-                temp_file.write(chunk)
+        try:
+            wf = wave.open(io.BytesIO(audio_bytes), "rb")
 
-        wf = wave.open("temp.wav", "rb")
-        if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
-            return JsonResponse({"error": "Invalid audio format"}, status=400)
+            if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
+                return JsonResponse({"error": "Invalid audio format"}, status=400)
 
-        rec = KaldiRecognizer(model, wf.getframerate())
+            rec = KaldiRecognizer(model, wf.getframerate())
 
-        result = ""
-        while True:
-            data = wf.readframes(4000)
-            if len(data) == 0:
-                break
-            if rec.AcceptWaveform(data):
-                res = json.loads(rec.Result())
-                result += res.get("text", "") + " "
+            result = ""
+            while True:
+                data = wf.readframes(4000)
+                if len(data) == 0:
+                    break
+                if rec.AcceptWaveform(data):
+                    res = json.loads(rec.Result())
+                    result += res.get("text", "") + " "
 
-        res = json.loads(rec.FinalResult())
-        result += res.get("text", "")
+            final_res = json.loads(rec.FinalResult())
+            result += final_res.get("text", "")
+            wf.close()
 
-        wf.close()
-        os.remove("temp.wav")
+            return JsonResponse({"text": result.strip()})
 
-        return JsonResponse({"text": result.strip()})
+        except wave.Error as e:
+            return JsonResponse({"error": f"Wave error: {str(e)}"}, status=400)
 
     return JsonResponse({"error": "No audio uploaded"}, status=400)
+
 
 @csrf_exempt
 @csrf_exempt

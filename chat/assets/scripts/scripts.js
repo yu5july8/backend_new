@@ -260,11 +260,11 @@ function generateQRCode() {
 
 
 
-// ✅ Declare variables globally once
+// ✅ Declare once at the top of your JS file
 let mediaRecorder = null;
 let audioChunks = [];
 
-// ✅ Start recording on press
+// 🎤 Called when the mic button is pressed
 function startSpeaking() {
     console.log("🎙️ Recording started...");
 
@@ -278,28 +278,27 @@ function startSpeaking() {
             };
 
             mediaRecorder.onstop = () => {
-                // ✅ audioBlob is defined here after stop
                 const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                sendAudioToVosk(audioBlob);  // ✅ Call function *after* we have the blob
+                sendAudioToVosk(audioBlob); // 🔄 send the blob to Django
             };
 
             mediaRecorder.start();
         })
         .catch(err => {
-            console.error("Microphone error:", err);
-            alert("Microphone access denied.");
+            console.error("🎙️ Microphone access error:", err);
+            alert("Microphone access is required.");
         });
 }
 
-// ✅ Stop recording on release
+// 🛑 Called when mic button is released
 function stopSpeaking() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        console.log("🛑 Recording stopped.");
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+        console.log("🛑 Stopping recording...");
         mediaRecorder.stop();
     }
 }
 
-// ✅ Send audio to backend for Vosk STT
+// 🚀 Sends audioBlob to backend (Django/Vosk)
 function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
@@ -308,17 +307,19 @@ function sendAudioToVosk(audioBlob) {
         method: "POST",
         body: formData
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
         if (data.text) {
-            const userName = sessionStorage.getItem("userName");
             const userType = sessionStorage.getItem("userType");
-            sendMessage(data.text, userType, userName);
+            const userName = sessionStorage.getItem("userName");
+            sendMessage(data.text, userType, userName); // ✅ display via WebSocket
         } else {
-            console.error("Error:", data.error);
+            console.error("🛑 Vosk error:", data.error);
         }
     })
-    .catch(error => console.error("Fetch error:", error));
+    .catch(err => {
+        console.error("❌ Error sending audio to Vosk:", err);
+    });
 }
 
 
