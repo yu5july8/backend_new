@@ -257,7 +257,26 @@ function generateQRCode() {
     }
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const speakBtn = document.getElementById("speak-button");
+    
+    if (speakBtn) {
+        // Desktop
+        speakBtn.addEventListener("mousedown", startSpeaking);
+        speakBtn.addEventListener("mouseup", stopSpeaking);
+        
+        // Mobile
+        speakBtn.addEventListener("touchstart", function (e) {
+            e.preventDefault();  // ← This helps prevent conflict
+            startSpeaking();
+        }, { passive: false });
 
+        speakBtn.addEventListener("touchend", function (e) {
+            e.preventDefault();
+            stopSpeaking();
+        }, { passive: false });
+    }
+});
 
 
 // ✅ Declare once at the top of your JS file
