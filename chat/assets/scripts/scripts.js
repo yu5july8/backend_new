@@ -128,65 +128,6 @@ function startConversation(userType) {
     }
 }
 
-let socket;
-let socketInitialized = false;
-
-function setupWebSocket() {
-    console.log('Initializing WebSocket...');
-    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
-
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = function () {
-        console.log("✅ WebSocket connected!");
-        socketInitialized = true;
-    };
-
-    socket.onmessage = function (event) {
-        let data = JSON.parse(event.data);
-
-        // ✅ Handle login event
-        if (data.event === "user_joined") {
-            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
-
-            if (window.location.pathname === "/") {
-                console.log("🖥️ Main monitor redirecting to chatroom...");
-                window.location.href = "/chatroom/";
-            }
-            return;
-        }
-
-        // ✅ Otherwise, treat as chat message
-        displayMessage(data.user, data.message, data.user_type);
-    };
-
-    socket.onerror = function (error) {
-        console.error("❌ WebSocket error:", error);
-    };
-
-    socket.onclose = function () {
-        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
-        setInterval(fetchMessages, 3000);
-    };
-}
-
-function fetchMessages() {
-    fetch("/api/chat/messages/")
-        .then(response => response.json())
-        .then(data => {
-            if (data.messages) {
-                data.messages.forEach(msg => {
-                    displayMessage(msg.user, msg.message, msg.user_type);
-                });
-            } else {
-                console.error("❌ Error fetching messages:", data.error);
-            }
-        })
-        .catch(error => console.error("❌ Fetch error:", error));
-}
-
-
 function notifyMainScreen(userName, userType) {
     function sendMessage() {
         socket.send(JSON.stringify({
@@ -257,45 +198,71 @@ function generateQRCode() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const speakBtn = document.getElementById("speak-button");
 
-    if (speakBtn) {
-        // Desktop
-        speakBtn.addEventListener("mousedown", startSpeaking);
-        speakBtn.addEventListener("mouseup", stopSpeaking);
-        speakBtn.addEventListener("mouseleave", stopSpeaking); // In case finger moves off
+let socket;
+let socketInitialized = false;
 
-        // Mobile
-        speakBtn.addEventListener("touchstart", function (e) {
-            e.preventDefault(); // 👈 prevent long-press menu
-            startSpeaking();
-        });
-        speakBtn.addEventListener("touchend", function (e) {
-            e.preventDefault();
-            stopSpeaking();
-        });
-    }
-});
+function setupWebSocket() {
+    console.log('Initializing WebSocket...');
+    let wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    let wsUrl = `${wsProtocol}://${window.location.host}/ws/chatroom/`;
 
+    socket = new WebSocket(wsUrl);
 
-// ✅ Declare once at the top of your JS file
+    socket.onopen = function () {
+        console.log("✅ WebSocket connected!");
+        socketInitialized = true;
+    };
+
+    socket.onmessage = function (event) {
+        let data = JSON.parse(event.data);
+
+        // ✅ Handle login event
+        if (data.event === "user_joined") {
+            console.log(`📲 User joined: ${data.user} (${data.user_type})`);
+
+            if (window.location.pathname === "/") {
+                console.log("🖥️ Main monitor redirecting to chatroom...");
+                window.location.href = "/chatroom/";
+            }
+            return;
+        }
+
+        // ✅ Otherwise, treat as chat message
+        displayMessage(data.user, data.message, data.user_type);
+    };
+
+    socket.onerror = function (error) {
+        console.error("❌ WebSocket error:", error);
+    };
+
+    socket.onclose = function () {
+        console.warn("⚠️ WebSocket disconnected. Falling back to polling...");
+        setInterval(fetchMessages, 3000);
+    };
+}
+
+function fetchMessages() {
+    fetch("/api/chat/messages/")
+        .then(response => response.json())
+        .then(data => {
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    displayMessage(msg.user, msg.message, msg.user_type);
+                });
+            } else {
+                console.error("❌ Error fetching messages:", data.error);
+            }
+        })
+        .catch(error => console.error("❌ Fetch error:", error));
+}
+
+// ✅ Declare variables globally once
 let mediaRecorder = null;
 let audioChunks = [];
 
-// 🎤 Called when the mic button is pressed
+// ✅ Start recording on press
 function startSpeaking() {
-    console.log("🎙️ Attempting to start recording");
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            console.log("🎙️ Microphone access granted.");
-            ...
-        })
-        .catch(err => {
-            console.error("❌ Mic access failed:", err);
-            alert("Microphone access is required. Please enable it in your browser.");
-        });
     console.log("🎙️ Recording started...");
 
     navigator.mediaDevices.getUserMedia({ audio: true })
@@ -308,48 +275,47 @@ function startSpeaking() {
             };
 
             mediaRecorder.onstop = () => {
+                // ✅ audioBlob is defined here after stop
                 const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                sendAudioToVosk(audioBlob); // 🔄 send the blob to Django
+                sendAudioToVosk(audioBlob);  // ✅ Call function *after* we have the blob
             };
 
             mediaRecorder.start();
         })
         .catch(err => {
-            console.error("🎙️ Microphone access error:", err);
-            alert("Microphone access is required.");
+            console.error("Microphone error:", err);
+            alert("Microphone access denied.");
         });
 }
 
-// 🛑 Called when mic button is released
+// ✅ Stop recording on release
 function stopSpeaking() {
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-        console.log("🛑 Stopping recording...");
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        console.log("🛑 Recording stopped.");
         mediaRecorder.stop();
     }
 }
 
-// 🚀 Sends audioBlob to backend (Django/Vosk)
+// ✅ Send audio to backend for Vosk STT
 function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
 
-    fetch("/api/chat/vosk_model/", {
+    fetch("/api/chat/speech_to_text_vosk/", {
         method: "POST",
         body: formData
     })
-    .then(res => res.json())
+    .then(response => response.json())
     .then(data => {
         if (data.text) {
-            const userType = sessionStorage.getItem("userType");
             const userName = sessionStorage.getItem("userName");
-            sendMessage(data.text, userType, userName); // ✅ display via WebSocket
+            const userType = sessionStorage.getItem("userType");
+            sendMessage(data.text, userType, userName);
         } else {
-            console.error("🛑 Vosk error:", data.error);
+            console.error("Error:", data.error);
         }
     })
-    .catch(err => {
-        console.error("❌ Error sending audio to Vosk:", err);
-    });
+    .catch(error => console.error("Fetch error:", error));
 }
 
 
