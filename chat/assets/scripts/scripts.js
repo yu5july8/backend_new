@@ -257,6 +257,25 @@ function fetchMessages() {
         .catch(error => console.error("❌ Fetch error:", error));
 }
 
+
+// ✅ Attach cross-device listener
+document.addEventListener("DOMContentLoaded", function () {
+    const speakBtn = document.getElementById("speak-button");
+
+    if (speakBtn) {
+        // Only for mobile — use touchstart/touchend
+        speakBtn.addEventListener("touchstart", function (e) {
+            e.preventDefault(); // stop scroll
+            startSpeaking();
+        }, { passive: false });
+
+        speakBtn.addEventListener("touchend", function (e) {
+            e.preventDefault();
+            stopSpeaking();
+        });
+    }
+});
+
 // ✅ Declare variables globally once
 let mediaRecorder = null;
 let audioChunks = [];
@@ -264,11 +283,10 @@ let audioChunks = [];
 // ✅ Start recording on press
 function startSpeaking() {
     console.log("🎙️ Attempting to start recording...");
+    document.getElementById("recording-status").textContent = "Recording...";
 
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
-            console.log("✅ Microphone access granted.");
-
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
 
@@ -278,8 +296,10 @@ function startSpeaking() {
             };
 
             mediaRecorder.onstop = () => {
-                console.log("🛑 MediaRecorder stopped");
-                const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                console.log("🛑 Recording stopped");
+                document.getElementById("recording-status").textContent = "";
+
+                const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
                 sendAudioToVosk(audioBlob);
             };
 
@@ -287,32 +307,8 @@ function startSpeaking() {
             console.log("🔴 MediaRecorder started");
         })
         .catch(err => {
-            console.error("❌ Microphone error:", err);
-            alert("Microphone access denied or not available.");
-        });
-
-    console.log("🎙️ Recording started...");
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                // ✅ audioBlob is defined here after stop
-                const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                sendAudioToVosk(audioBlob);  // ✅ Call function *after* we have the blob
-            };
-
-            mediaRecorder.start();
-        })
-        .catch(err => {
             console.error("Microphone error:", err);
-            alert("Microphone access denied.");
+            alert("🎤 Please allow microphone access.");
         });
 }
 
@@ -324,25 +320,7 @@ function stopSpeaking() {
     }
 }
 
-// ✅ Attach cross-device listener
-document.addEventListener("DOMContentLoaded", () => {
-    const speakBtn = document.getElementById("speak-button");
-    if (!speakBtn) return;
 
-    // Pointer events cover mouse, touch, pen
-    speakBtn.addEventListener("pointerdown", e => {
-        e.preventDefault(); // Important for mobile
-        startSpeaking();
-    });
-
-    speakBtn.addEventListener("pointerup", e => {
-        e.preventDefault(); // Prevents iOS context menu
-        stopSpeaking();
-    });
-
-    // Fallback for lost pointerup (e.g., finger slide off)
-    speakBtn.addEventListener("pointercancel", stopSpeaking);
-});
 
 function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
