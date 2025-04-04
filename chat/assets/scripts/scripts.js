@@ -417,7 +417,7 @@ function sendMessage(message, userType) {
     let data = {
         user: userName,
         message: message,
-        user_type: 'userType'
+        user_type: 'userType_temp'
     };
     
     console.log("💾 Saving message:", data); // 👈 Add this
