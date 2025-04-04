@@ -76,10 +76,6 @@ def get_messages(request):
 MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
 model = Model(MODEL_PATH)
 
-# Load model
-MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
-model = Model(MODEL_PATH)
-
 @csrf_exempt
 def speech_to_text_vosk(request):
     if request.method == "POST" and request.FILES.get("audio"):
