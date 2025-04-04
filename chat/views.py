@@ -1,4 +1,3 @@
-import io
 import os
 import wave
 import json
@@ -20,6 +19,10 @@ from django.views.decorators.csrf import csrf_exempt
 from vosk import Model, KaldiRecognizer
 import wave
 
+import logging
+import io
+
+logger = logging.getLogger(__name__)
 
 
 # template loading 
