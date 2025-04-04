@@ -114,6 +114,13 @@ button:hover, input[type="button"]:hover, input[type="submit"]:hover {
     transform: scale(1.1);
 }
 
+button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+}
+
 /* Loading Animation */
 @keyframes fadeIn {
     from { opacity: 0.5; }

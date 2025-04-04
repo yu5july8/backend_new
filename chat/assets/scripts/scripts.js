@@ -324,6 +324,26 @@ function stopSpeaking() {
     }
 }
 
+// ✅ Attach cross-device listener
+document.addEventListener("DOMContentLoaded", () => {
+    const speakBtn = document.getElementById("speak-button");
+    if (!speakBtn) return;
+
+    // Pointer events cover mouse, touch, pen
+    speakBtn.addEventListener("pointerdown", e => {
+        e.preventDefault(); // Important for mobile
+        startSpeaking();
+    });
+
+    speakBtn.addEventListener("pointerup", e => {
+        e.preventDefault(); // Prevents iOS context menu
+        stopSpeaking();
+    });
+
+    // Fallback for lost pointerup (e.g., finger slide off)
+    speakBtn.addEventListener("pointercancel", stopSpeaking);
+});
+
 // ✅ Send audio to backend for Vosk STT
 function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
