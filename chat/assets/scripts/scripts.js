@@ -338,12 +338,14 @@ function sendAudioToVosk(audioBlob) {
         return response.json();
     })
     .then(data => {
+        console.log("📦 Vosk response:", data);  // ← Add this
+    
         if (data.text) {
             const userType = sessionStorage.getItem("userType");
             const userName = sessionStorage.getItem("userName");
             sendMessage(data.text, userType, userName);
         } else {
-            console.error("🛑 Vosk error:", data.error);
+            console.error("🛑 Vosk error:", data.error || "No text recognized");
         }
     })
     .catch(err => {
@@ -410,24 +412,30 @@ function typingSentence() {
 
 function sendMessage(message, userType) {
     let userName = sessionStorage.getItem("userName") || (userType === "hearing-user" ? "Hearing User" : "DHH User");
-
+    
+    
     let data = {
         user: userName,
         message: message,
-        user_type: userType
+        user_type: 'userType'
     };
-
-    // Send via WebSocket
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(data));
-    }
-
-    // Save to DB
+    
+    console.log("💾 Saving message:", data); // 👈 Add this
+    
     fetch("/api/chat/save/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
-    });
+    })
+    .then(response => response.json())
+    .then(res => {
+        if (res.status === "success") {
+            console.log("✅ Message saved to DB");
+        } else {
+            console.error("❌ DB save failed:", res.error);
+        }
+    })
+    .catch(err => console.error("❌ Error saving message:", err));
 }
 
 // ✅ Define this first

@@ -133,19 +133,25 @@ def speech_to_text_vosk(request):
 
 
 @csrf_exempt
-@csrf_exempt
 def save_message(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        username = data.get("user")
-        message = data.get("message")
-        user_type = data.get("user_type")
+        try:
+            data = json.loads(request.body)
+            username = data.get("user")
+            message = data.get("message")
+            user_type = data.get("user_type")
 
-        if username and message and user_type:
-            Conversation.objects.create(
-                username=username,
-                message=message,
-                user_type=user_type
-            )
-            return JsonResponse({"status": "success"})
-        return JsonResponse({"status": "failed", "error": "Missing fields"}, status=400)
+            if username and message and user_type:
+                Conversation.objects.create(
+                    username=username,
+                    message=message,
+                    user_type=user_type
+                )
+                return JsonResponse({"status": "success"})
+
+            return JsonResponse({"error": "Missing fields"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    return JsonResponse({"error": "Invalid method"}, status=405)
