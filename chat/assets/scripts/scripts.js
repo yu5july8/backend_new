@@ -263,6 +263,34 @@ let audioChunks = [];
 
 // ✅ Start recording on press
 function startSpeaking() {
+    console.log("🎙️ Attempting to start recording...");
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            console.log("✅ Microphone access granted.");
+
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                console.log("🎧 Data available");
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                console.log("🛑 MediaRecorder stopped");
+                const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                sendAudioToVosk(audioBlob);
+            };
+
+            mediaRecorder.start();
+            console.log("🔴 MediaRecorder started");
+        })
+        .catch(err => {
+            console.error("❌ Microphone error:", err);
+            alert("Microphone access denied or not available.");
+        });
+}
     console.log("🎙️ Recording started...");
 
     navigator.mediaDevices.getUserMedia({ audio: true })
