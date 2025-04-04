@@ -16,6 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from vosk import Model, KaldiRecognizer
 import wave
 import io
+import subprocess
+import tempfile
 
 # Configure OpenAI API
 openai.api_key = settings.OPENAI_API_KEY
@@ -80,14 +82,26 @@ model = Model(MODEL_PATH)
 def speech_to_text_vosk(request):
     if request.method == "POST" and request.FILES.get("audio"):
         audio_file = request.FILES["audio"]
-        audio_bytes = audio_file.read()
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_input:
+            for chunk in audio_file.chunks():
+                temp_input.write(chunk)
+            temp_input_path = temp_input.name
+
+        # Convert to valid wav using ffmpeg
+        temp_output_path = temp_input_path.replace(".webm", ".wav")
 
         try:
-            wf = wave.open(io.BytesIO(audio_bytes), "rb")
+            subprocess.run([
+                "ffmpeg", "-y",
+                "-i", temp_input_path,
+                "-ar", "16000",
+                "-ac", "1",
+                "-f", "wav",
+                temp_output_path
+            ], check=True)
 
-            if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
-                return JsonResponse({"error": "Invalid audio format"}, status=400)
-
+            wf = wave.open(temp_output_path, "rb")
             rec = KaldiRecognizer(model, wf.getframerate())
 
             result = ""
@@ -103,10 +117,13 @@ def speech_to_text_vosk(request):
             result += final_res.get("text", "")
             wf.close()
 
+            os.remove(temp_input_path)
+            os.remove(temp_output_path)
+
             return JsonResponse({"text": result.strip()})
 
-        except wave.Error as e:
-            return JsonResponse({"error": f"Wave error: {str(e)}"}, status=400)
+        except subprocess.CalledProcessError:
+            return JsonResponse({"error": "ffmpeg conversion failed"}, status=500)
 
     return JsonResponse({"error": "No audio uploaded"}, status=400)
 
