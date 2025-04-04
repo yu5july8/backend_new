@@ -344,7 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
     speakBtn.addEventListener("pointercancel", stopSpeaking);
 });
 
-// ✅ Send audio to backend for Vosk STT
 function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
@@ -358,14 +357,16 @@ function sendAudioToVosk(audioBlob) {
         return response.json();
     })
     .then(data => {
-        console.log("📦 Vosk response:", data);  // ← Add this
-    
         if (data.text) {
             const userType = sessionStorage.getItem("userType");
             const userName = sessionStorage.getItem("userName");
+    
+            console.log("🧠 Vosk transcription:", data.text);
+    
+            // ✅ Send to chatroom and DB
             sendMessage(data.text, userType, userName);
         } else {
-            console.error("🛑 Vosk error:", data.error || "No text recognized");
+            console.error("🛑 Vosk error:", data.error);
         }
     })
     .catch(err => {
