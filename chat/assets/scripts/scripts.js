@@ -329,23 +329,27 @@ function sendAudioToVosk(audioBlob) {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.wav");
 
-    fetch("/api/chat/speech_to_text_vosk/", {
+    fetch("/api/chat/vosk_model/", {
         method: "POST",
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error("Server error: " + response.status);
+        return response.json();
+    })
     .then(data => {
         if (data.text) {
-            const userName = sessionStorage.getItem("userName");
             const userType = sessionStorage.getItem("userType");
+            const userName = sessionStorage.getItem("userName");
             sendMessage(data.text, userType, userName);
         } else {
-            console.error("Error:", data.error);
+            console.error("🛑 Vosk error:", data.error);
         }
     })
-    .catch(error => console.error("Fetch error:", error));
+    .catch(err => {
+        console.error("❌ Error sending audio to Vosk:", err);
+    });
 }
-
 
 document.addEventListener("DOMContentLoaded", function () {
     let reactions = {
