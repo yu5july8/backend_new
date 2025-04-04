@@ -290,7 +290,7 @@ function startSpeaking() {
             console.error("❌ Microphone error:", err);
             alert("Microphone access denied or not available.");
         });
-}
+
     console.log("🎙️ Recording started...");
 
     navigator.mediaDevices.getUserMedia({ audio: true })
