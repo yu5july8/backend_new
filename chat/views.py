@@ -1,10 +1,14 @@
-import json  # ✅ Add this at the top
+import io
+import os
+import wave
+import json
+import subprocess
+import tempfile
+import traceback
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import UserSerializer, MessageSerializer
 from django.shortcuts import render
-import openai
-import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
@@ -15,12 +19,6 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from vosk import Model, KaldiRecognizer
 import wave
-import io
-import subprocess
-import tempfile
-
-# Configure OpenAI API
-openai.api_key = settings.OPENAI_API_KEY
 
 
 
@@ -81,17 +79,16 @@ model = Model(MODEL_PATH)
 @csrf_exempt
 def speech_to_text_vosk(request):
     if request.method == "POST" and request.FILES.get("audio"):
-        audio_file = request.FILES["audio"]
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_input:
-            for chunk in audio_file.chunks():
-                temp_input.write(chunk)
-            temp_input_path = temp_input.name
-
-        # Convert to valid wav using ffmpeg
-        temp_output_path = temp_input_path.replace(".webm", ".wav")
-
         try:
+            audio_file = request.FILES["audio"]
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_input:
+                for chunk in audio_file.chunks():
+                    temp_input.write(chunk)
+                temp_input_path = temp_input.name
+
+            temp_output_path = temp_input_path.replace(".webm", ".wav")
+
             subprocess.run([
                 "ffmpeg", "-y",
                 "-i", temp_input_path,
@@ -122,8 +119,9 @@ def speech_to_text_vosk(request):
 
             return JsonResponse({"text": result.strip()})
 
-        except subprocess.CalledProcessError:
-            return JsonResponse({"error": "ffmpeg conversion failed"}, status=500)
+        except Exception as e:
+            print("❌ Vosk Processing Error:", traceback.format_exc())
+            return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "No audio uploaded"}, status=400)
 
