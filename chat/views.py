@@ -76,32 +76,35 @@ def get_messages(request):
 MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
 model = Model(MODEL_PATH)
 
+
+# Load model globally (make sure path is correct)
+MODEL_PATH = os.path.join("vosk_models", "vosk-model-small-en-us-0.15")
+model = Model(MODEL_PATH)
+
 @csrf_exempt
 def speech_to_text_vosk(request):
     if request.method == "POST" and request.FILES.get("audio"):
         try:
             audio_file = request.FILES["audio"]
 
+            # Save uploaded file to temp .webm
             with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_input:
                 for chunk in audio_file.chunks():
                     temp_input.write(chunk)
                 temp_input_path = temp_input.name
 
+            # Convert to .wav (mono, 16kHz) using ffmpeg
             temp_output_path = temp_input_path.replace(".webm", ".wav")
-
             subprocess.run([
-                "ffmpeg", "-y",
-                "-i", temp_input_path,
-                "-ar", "16000",
-                "-ac", "1",
-                "-f", "wav",
-                temp_output_path
+                "ffmpeg", "-y", "-i", temp_input_path,
+                "-ar", "16000", "-ac", "1", "-f", "wav", temp_output_path
             ], check=True)
 
+            # Run Vosk
             wf = wave.open(temp_output_path, "rb")
             rec = KaldiRecognizer(model, wf.getframerate())
-
             result = ""
+
             while True:
                 data = wf.readframes(4000)
                 if len(data) == 0:
@@ -114,13 +117,16 @@ def speech_to_text_vosk(request):
             result += final_res.get("text", "")
             wf.close()
 
+            # Clean up
             os.remove(temp_input_path)
             os.remove(temp_output_path)
 
             return JsonResponse({"text": result.strip()})
 
+        except subprocess.CalledProcessError as e:
+            return JsonResponse({"error": "ffmpeg failed: " + str(e)}, status=500)
         except Exception as e:
-            print("❌ Vosk Processing Error:", traceback.format_exc())
+            print("❌ Vosk error:\n", traceback.format_exc())  # Logs to Render logs
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "No audio uploaded"}, status=400)
