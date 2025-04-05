@@ -120,6 +120,11 @@ button {
     user-select: none;
     touch-action: none;
 }
+.input-select.selected {
+    background-color: #4caf50;
+    color: white;
+    font-weight: bold;
+}
 
 /* Loading Animation */
 @keyframes fadeIn {

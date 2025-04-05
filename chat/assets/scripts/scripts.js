@@ -1,11 +1,43 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("DOM loaded. Running initialization functions...");
 
-    let micButton = document.getElementById("microphone-btn");
-    let typingButton = document.getElementById("typing-btn");
+    const inputButtons = document.querySelectorAll(".input-select");
+    const userTypeInput = document.getElementById("selectedUserType");
+    const joinChatBtn = document.getElementById("joinChatBtn");
 
-    if (micButton) micButton.addEventListener("click", () => startConversation("hearing-user"));
-    if (typingButton) typingButton.addEventListener("click", () => startConversation("dhh-user"));
+    // Store selected input method
+    inputButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const selectedType = button.dataset.userType;
+            userTypeInput.value = selectedType;
+
+            // Optional: visually highlight selected button
+            inputButtons.forEach(btn => btn.classList.remove("selected"));
+            button.classList.add("selected");
+        });
+    });
+
+    // Handle Join Chat
+    joinChatBtn.addEventListener("click", () => {
+        const userName = document.getElementById("userName").value.trim();
+        const userType = userTypeInput.value;
+
+        if (!userName || !userType) {
+            alert("Please enter your name and select an input method.");
+            return;
+        }
+
+        // Store in session
+        sessionStorage.setItem("userName", userName);
+        sessionStorage.setItem("userType", userType);
+
+        // Notify main screen + redirect
+        notifyMainScreen(userName, userType);
+
+        const target = userType === "hearing-user" ? "/speaking/" : "/typing/";
+        window.location.href = target;
+    });
+
 
     if (document.getElementById("qr-code")) {
         generateQRCode();
@@ -416,7 +448,7 @@ function sendMessage(message, userType) {
     let data = {
         user: userName,
         message: message,
-        user_type: 'userType_temp'
+        user_type: userType
     };
     
     console.log("💾 Saving message:", data); // 👈 Add this

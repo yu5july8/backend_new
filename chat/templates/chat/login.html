@@ -21,9 +21,11 @@
 
         <p>Select Your Input Method:</p>
         <div id="userType">
-            <button id="microphone-btn">🎤 Use Microphone</button>
-            <button id="typing-btn">⌨️ Use Typing</button>
+            <button type="button" class="input-select" data-user-type="hearing-user">🎤 Use Microphone</button>
+            <button type="button" class="input-select" data-user-type="dhh-user">⌨️ Use Typing</button>
         </div>
+        <input type="hidden" id="selectedUserType">
+        <button id="joinChatBtn">Join Chat</button>
     </fieldset>
 </body>
 </html>
