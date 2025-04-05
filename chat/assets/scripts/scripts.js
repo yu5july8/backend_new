@@ -441,32 +441,42 @@ function typingSentence() {
     }
 }
 
-function sendMessage(message, userType) {
-    let userName = sessionStorage.getItem("userName") || (userType === "hearing-user" ? "Hearing User" : "DHH User");
-    
-    
-    let data = {
+function sendMessage(message, userType, userName) {
+    userName = userName || sessionStorage.getItem("userName") || "Unknown";
+    userType = userType || sessionStorage.getItem("userType") || "unknown";
+
+    const data = {
         user: userName,
         message: message,
         user_type: userType
     };
-    
-    console.log("💾 Saving message:", data); // 👈 Add this
-    
+
+    console.log("📨 Sending via WebSocket:", data);
+
+    // ✅ Broadcast to chatroom via WebSocket
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
+    } else {
+        console.warn("⚠️ WebSocket not open, skipping broadcast");
+    }
+
+    // ✅ Save to DB
     fetch("/api/chat/save/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(res => {
-        if (res.status === "success") {
+    .then(res => res.json())
+    .then(response => {
+        if (response.status === "success") {
             console.log("✅ Message saved to DB");
         } else {
-            console.error("❌ DB save failed:", res.error);
+            console.error("❌ DB save failed:", response.error);
         }
     })
-    .catch(err => console.error("❌ Error saving message:", err));
+    .catch(err => {
+        console.error("❌ Error saving message:", err);
+    });
 }
 
 // ✅ Define this first
@@ -484,6 +494,7 @@ function displayMessage(user, message, userType) {
 
 socket.onmessage = function (event) {
     const data = JSON.parse(event.data);
+    console.log("📩 WS message received:", data); // Debug here
 
     if (data.event === "user_joined") {
         console.log(`📲 ${data.user} (${data.user_type}) joined the chat.`);
