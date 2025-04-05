@@ -1,4 +1,62 @@
-let socket;
+let socket; // ✅ Global declaration
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM loaded. Running initialization functions...");
+
+    const inputButtons = document.querySelectorAll(".input-select");
+    const userTypeInput = document.getElementById("selectedUserType");
+    const joinChatBtn = document.getElementById("joinChatBtn");
+
+    // ✅ Handle input method selection
+    inputButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const selectedType = button.dataset.userType;
+            userTypeInput.value = selectedType;
+
+            inputButtons.forEach(btn => btn.classList.remove("selected"));
+            button.classList.add("selected");
+        });
+    });
+
+    // ✅ Join chat button logic
+    if (joinChatBtn) {
+        joinChatBtn.addEventListener("click", () => {
+            const userName = document.getElementById("userName").value.trim();
+            const userType = userTypeInput.value;
+
+            if (!userName || !userType) {
+                alert("Please enter your name and select an input method.");
+                return;
+            }
+
+            sessionStorage.setItem("userName", userName);
+            sessionStorage.setItem("userType", userType);
+
+            notifyMainScreen(userName, userType);
+
+            const target = userType === "hearing-user" ? "/speaking/" : "/typing/";
+            window.location.href = target;
+        });
+    }
+
+    if (window.location.pathname === "/") {
+        checkIfMonitor(); // 🖥️ main monitor
+    } else {
+        checkIfLoggedIn(); // 📱 mobile device
+    }
+
+    setupWebSocket(); // ✅ Initialize WebSocket
+    generateQRCode(); // ✅ Safe QR Code rendering
+
+    const exitBtn = document.getElementById("exit-button");
+    if (exitBtn) {
+        exitBtn.addEventListener("click", () => {
+            console.log("🚪 Exit button clicked. Redirecting...");
+            window.location.href = "/exit/";
+        });
+    }
+});
+
 
 let socketInitialized = false;
 
@@ -41,72 +99,6 @@ function setupWebSocket() {
         setInterval(fetchMessages, 3000);
     };
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM loaded. Running initialization functions...");
-
-    // Store selected input method
-    inputButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            const selectedType = button.dataset.userType;
-            userTypeInput.value = selectedType;
-
-            // Optional: visually highlight selected button
-            inputButtons.forEach(btn => btn.classList.remove("selected"));
-            button.classList.add("selected");
-        });
-    });
-
-
-    if (document.getElementById("qr-code")) {
-        generateQRCode();
-    }
-
-    
-
-    setupWebSocket();
-    generateQRCode();
-
-
-    const inputButtons = document.querySelectorAll(".input-select");
-    const userTypeInput = document.getElementById("selectedUserType");
-    const joinChatBtn = document.getElementById("joinChatBtn");
-
-    if (joinChatBtn) {
-        joinChatBtn.addEventListener("click", () => {
-            const userName = document.getElementById("userName").value.trim();
-            const userType = userTypeInput.value;
-
-            if (!userName || !userType) {
-                alert("Please enter your name and select an input method.");
-                return;
-            }
-
-            sessionStorage.setItem("userName", userName);
-            sessionStorage.setItem("userType", userType);
-
-            notifyMainScreen(userName, userType);
-
-            const target = userType === "hearing-user" ? "/speaking/" : "/typing/";
-            window.location.href = target;
-        });
-    }
-
-    if (window.location.pathname === "/") {
-        checkIfMonitor(); // ✅ Only main monitor
-    } else {
-        checkIfLoggedIn(); // ✅ Everyone else
-    }
-    const exitBtn = document.getElementById("exit-button");
-
-    if (exitBtn) {
-        exitBtn.addEventListener("click", function () {
-            console.log("🚪 Exit button clicked. Redirecting...");
-            window.location.href = "/exit/"; // Make sure this matches your Django URL
-        });
-    }
-});
-
 // ✅ Check if user is logged in
 
 
