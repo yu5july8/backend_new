@@ -17,27 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Handle Join Chat
-    joinChatBtn.addEventListener("click", () => {
-        const userName = document.getElementById("userName").value.trim();
-        const userType = userTypeInput.value;
-
-        if (!userName || !userType) {
-            alert("Please enter your name and select an input method.");
-            return;
-        }
-
-        // Store in session
-        sessionStorage.setItem("userName", userName);
-        sessionStorage.setItem("userType", userType);
-
-        // Notify main screen + redirect
-        notifyMainScreen(userName, userType);
-
-        const target = userType === "hearing-user" ? "/speaking/" : "/typing/";
-        window.location.href = target;
-    });
-
 
     if (document.getElementById("qr-code")) {
         generateQRCode();
@@ -62,7 +41,26 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+// Handle Join Chat
+joinChatBtn.addEventListener("click", () => {
+    const userName = document.getElementById("userName").value.trim();
+    const userType = userTypeInput.value;
 
+    if (!userName || !userType) {
+        alert("Please enter your name and select an input method.");
+        return;
+    }
+
+    // Store in session
+    sessionStorage.setItem("userName", userName);
+    sessionStorage.setItem("userType", userType);
+
+    // Notify main screen + redirect
+    notifyMainScreen(userName, userType);
+
+    const target = userType === "hearing-user" ? "/speaking/" : "/typing/";
+    window.location.href = target;
+});
 
 // ✅ Check if user is logged in
 
