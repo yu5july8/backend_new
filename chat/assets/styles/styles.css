@@ -72,10 +72,6 @@ p {
     height: 100px;
 }
 
-#chat_display {
-    max-height: 200px; /* Adjust as needed */
-    overflow-y: auto;
-}
 /* ========== Chatroom (Desktop Only) ========== */
 #chat {
     background-color: white;
