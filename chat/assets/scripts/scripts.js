@@ -482,6 +482,17 @@ function displayMessage(user, message, userType) {
     messageElement.style.fontWeight = "bold";
     
     chatDisplay.appendChild(messageElement);
+
+    // 🧹 Limit messages depending on the page
+    const currentPath = window.location.pathname;
+    const limit = currentPath.includes("chatroom") ? 12 : 3;
+
+    // Remove older messages if limit exceeded
+    while (chatDisplay.children.length > limit) {
+        chatDisplay.removeChild(chatDisplay.firstChild);
+    }
+
+    // Auto-scroll to bottom
     chatDisplay.scrollTop = chatDisplay.scrollHeight;
 }
 
