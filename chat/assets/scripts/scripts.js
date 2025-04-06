@@ -475,11 +475,14 @@ function sendMessage(message, userType, userName) {
 
 // ✅ Define this first
 function displayMessage(user, message, userType) {
-    let chatDisplay = document.getElementById("chat_display");
-    let messageElement = document.createElement("p");
+    const chatDisplay = document.getElementById("chat_display");
+
+    // Create the message element
+    const messageElement = document.createElement("p");
     messageElement.textContent = `${user}: ${message}`;
     messageElement.style.color = userType === "hearing-user" ? "blue" : "green";
     messageElement.style.fontWeight = "bold";
+    messageElement.style.fontSize = "1.2em";
     
     chatDisplay.appendChild(messageElement);
 
