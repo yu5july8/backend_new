@@ -126,6 +126,11 @@ button {
     font-weight: bold;
 }
 
+#chat_display {
+    max-height: 200px; /* Adjust as needed */
+    overflow-y: auto;
+}
+
 /* Loading Animation */
 @keyframes fadeIn {
     from { opacity: 0.5; }

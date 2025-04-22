@@ -473,16 +473,26 @@ function sendMessage(message, userType, userName) {
     });
 }
 
-// ✅ Define this first
 function displayMessage(user, message, userType) {
-    let chatDisplay = document.getElementById("chat_display");
-    let messageElement = document.createElement("p");
+    const isChatroom = document.getElementById("chat_display");
+    const container = isChatroom
+        ? document.getElementById("chat_display")
+        : document.getElementById("chat-box");
+
+    const messageElement = document.createElement("p");
     messageElement.textContent = `${user}: ${message}`;
     messageElement.style.color = userType === "hearing-user" ? "blue" : "green";
     messageElement.style.fontWeight = "bold";
-    
-    chatDisplay.appendChild(messageElement);
-    chatDisplay.scrollTop = chatDisplay.scrollHeight;
+
+    container.appendChild(messageElement);
+
+    // ✅ Limit messages to last N
+    const maxMessages = isChatroom ? 12 : 3;
+    while (container.children.length > maxMessages) {
+        container.removeChild(container.firstChild);
+    }
+
+    container.scrollTop = container.scrollHeight;
 }
 
 
